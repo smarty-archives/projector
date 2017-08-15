@@ -3,7 +3,7 @@ package transform
 import (
 	"time"
 
-	"github.com/smartystreets/pipeline/projector"
+	"github.com/smartystreets/projector"
 )
 
 type MessageTransformer struct {

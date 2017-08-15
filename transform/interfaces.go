@@ -4,7 +4,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/smartystreets/pipeline/projector"
+	"github.com/smartystreets/projector"
 )
 
 type Transformer interface {
