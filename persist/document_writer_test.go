@@ -13,7 +13,7 @@ import (
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 	"github.com/smartystreets/logging"
-	"github.com/smartystreets/pipeline/projector"
+	"github.com/smartystreets/projector"
 )
 
 func TestDocumentWriterFixture(t *testing.T) {

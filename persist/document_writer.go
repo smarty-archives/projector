@@ -11,7 +11,7 @@ import (
 	"net/http"
 
 	"github.com/smartystreets/logging"
-	"github.com/smartystreets/pipeline/projector"
+	"github.com/smartystreets/projector"
 )
 
 type DocumentWriter struct {

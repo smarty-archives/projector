@@ -6,7 +6,7 @@ import (
 
 	"github.com/smartystreets/clock"
 	"github.com/smartystreets/metrics"
-	"github.com/smartystreets/pipeline/projector"
+	"github.com/smartystreets/projector"
 )
 
 type Handler struct {

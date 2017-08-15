@@ -3,7 +3,7 @@ package persist
 import (
 	"net/http"
 
-	"github.com/smartystreets/pipeline/projector"
+	"github.com/smartystreets/projector"
 )
 
 type Writer interface {
