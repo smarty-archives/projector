@@ -67,12 +67,9 @@ func (this *Handler) persistPendingDocuments() {
 func (this *Handler) persist(document projector.Document) {
 	started := clock.UTCNow()
 	this.writer.Write(document)
-	metrics.Measure(DocumentWriteLatency, milliseconds(time.Since(started)))
+	metrics.Measure(DocumentWriteLatency, metrics.Milliseconds(time.Since(started)))
 	this.waiter.Done()
 }
-
-func milliseconds(duration time.Duration) int64 { return microseconds(duration) / 1000 }
-func microseconds(duration time.Duration) int64 { return int64(duration.Nanoseconds() / 1000) }
 
 func (this *Handler) sendLatestAcknowledgement(receipt interface{}) {
 	this.output <- receipt
