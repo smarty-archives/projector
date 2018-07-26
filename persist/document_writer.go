@@ -75,12 +75,14 @@ func (this *DocumentWriter) setHeaders(request *http.Request, checksum string) {
 func (this *DocumentWriter) handleResponse(response *http.Response, err error) {
 	if err != nil {
 		this.logger.Panic(err)
-	} else if response.StatusCode != http.StatusOK {
-		this.logger.Panic(fmt.Errorf("Non-200 HTTP Status Code: %d %s", response.StatusCode, response.Status))
+		return
 	}
 
-	if response != nil && response.Body != nil {
-		response.Body.Close() // release connection back to pool
+	defer response.Body.Close() // release connection back to pool
+
+	if response.StatusCode != http.StatusOK {
+		this.logger.Panic(fmt.Errorf("Non-200 HTTP Status Code: %d %s", response.StatusCode, response.Status))
+		return
 	}
 }
 
