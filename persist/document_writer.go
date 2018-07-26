@@ -7,21 +7,27 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/smartystreets/logging"
 	"github.com/smartystreets/projector"
+	"github.com/smartystreets/s3"
 )
 
 type DocumentWriter struct {
 	logger *logging.Logger
 
+	bucket string
+	s3     *s3.S3
 	client HTTPClient
 }
 
-func NewDocumentWriter(client HTTPClient) *DocumentWriter {
-	return &DocumentWriter{client: client}
+func NewDocumentWriter(bucket string, s3 *s3.S3, client HTTPClient) *DocumentWriter {
+	return &DocumentWriter{
+		s3:     s3,
+		bucket: bucket,
+		client: client,
+	}
 }
 
 func (this *DocumentWriter) Write(document projector.Document) {
@@ -51,21 +57,20 @@ func (this *DocumentWriter) md5Checksum(body []byte) string {
 }
 
 func (this *DocumentWriter) buildRequest(path string, body []byte, checksum string) *http.Request {
-	request, err := http.NewRequest("PUT", path, nil)
+	request, err := this.s3.SignedPutRequest(
+		this.bucket,
+		s3.Key(path),
+		s3.Content(body),
+		s3.ContentLength(int64(len(body))),
+		s3.ContentType("application/json"),
+		s3.ContentMD5(checksum),
+		s3.ContentEncoding("gzip"),
+		s3.ServerSideEncryption(s3.ServerSideEncryptionAES256),
+	)
 	if err != nil {
 		this.logger.Panic(err)
 	}
-
-	request.Body = newNopCloser(body)
-	request.ContentLength = int64(len(body))
-
-	this.setHeaders(request, checksum)
 	return request
-}
-func (this *DocumentWriter) setHeaders(request *http.Request, checksum string) {
-	request.Header.Set("Content-Encoding", "gzip")
-	request.Header.Set("Content-Md5", checksum)
-	request.Header.Set("Content-Type", "application/json")
 }
 
 // handleResponse handles error response, which technically, shouldn't happen
@@ -85,8 +90,3 @@ func (this *DocumentWriter) handleResponse(response *http.Response, err error) {
 		return
 	}
 }
-
-type nopCloser struct{ io.ReadSeeker }
-
-func newNopCloser(body []byte) *nopCloser { return &nopCloser{bytes.NewReader(body)} }
-func (this *nopCloser) Close() error      { return nil }

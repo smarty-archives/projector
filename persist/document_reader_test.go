@@ -13,6 +13,7 @@ import (
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 	"github.com/smartystreets/logging"
+	"github.com/smartystreets/s3"
 )
 
 func TestDocumentReaderFixture(t *testing.T) {
@@ -31,15 +32,9 @@ type DocumentReaderFixture struct {
 func (this *DocumentReaderFixture) Setup() {
 	this.path = "/document/path"
 	this.client = &FakeHTTPGetClient{}
-	this.reader = NewDocumentReader(this.client)
+	this.reader = NewDocumentReader("smarty-bucket", s3.New(), this.client)
 	this.reader.logger = logging.Capture()
 	this.document = &Document{}
-}
-
-func (this *DocumentReaderFixture) TestRequestInvalid_ClientIgnored() {
-	this.path = "%%%%%%%%"
-	this.assertPanic(`Could not create request: parse %%%%%%%%: invalid URL escape "%%%"`)
-	this.So(this.client.called, should.BeFalse)
 }
 
 func (this *DocumentReaderFixture) TestClientErrorPreventsDocumentReading() {

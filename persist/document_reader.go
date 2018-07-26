@@ -8,22 +8,29 @@ import (
 	"net/http"
 
 	"github.com/smartystreets/logging"
+	"github.com/smartystreets/s3"
 )
 
 type DocumentReader struct {
 	logger *logging.Logger
 
+	s3     *s3.S3
+	bucket string
 	client HTTPClient
 }
 
-func NewDocumentReader(client HTTPClient) *DocumentReader {
-	return &DocumentReader{client: client}
+func NewDocumentReader(bucket string, s3 *s3.S3, client HTTPClient) *DocumentReader {
+	return &DocumentReader{
+		s3:     s3,
+		bucket: bucket,
+		client: client,
+	}
 }
 
 func (this *DocumentReader) Read(path string, document interface{}) error {
-	request, err := http.NewRequest("GET", path, nil)
+	request, err := this.s3.SignedGetRequest(this.bucket, s3.Key(path))
 	if err != nil {
-		return fmt.Errorf("Could not create request: '%s'", err.Error())
+		return fmt.Errorf("Could not create signed request: '%s'", err.Error())
 	}
 
 	response, err := this.client.Do(request)
