@@ -14,7 +14,6 @@ import (
 	"github.com/smartystreets/gunit"
 	"github.com/smartystreets/logging"
 	"github.com/smartystreets/projector"
-	"github.com/smartystreets/s3"
 )
 
 func TestDocumentWriterFixture(t *testing.T) {
@@ -29,7 +28,7 @@ type DocumentWriterFixture struct {
 
 func (this *DocumentWriterFixture) Setup() {
 	this.client = NewFakeHTTPClientForWriting()
-	this.writer = NewDocumentWriter("smarty-bucket", s3.New(), this.client)
+	this.writer = NewDocumentWriter("smarty-bucket", "access", "secret", this.client)
 	this.writer.logger = logging.Capture()
 }
 

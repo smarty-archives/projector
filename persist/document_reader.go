@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/smartystreets/logging"
 	"github.com/smartystreets/s3"
@@ -14,21 +15,21 @@ import (
 type DocumentReader struct {
 	logger *logging.Logger
 
-	s3     *s3.S3
-	bucket string
-	client HTTPClient
+	storage     s3.Option
+	credentials s3.Option
+	client      HTTPClient
 }
 
-func NewDocumentReader(bucket string, s3 *s3.S3, client HTTPClient) *DocumentReader {
+func NewDocumentReader(storageAddress *url.URL, accessKey, secretKey string, client HTTPClient) *DocumentReader {
 	return &DocumentReader{
-		s3:     s3,
-		bucket: bucket,
-		client: client,
+		storage:     s3.StorageAddress(storageAddress),
+		credentials: s3.Credentials(accessKey, secretKey),
+		client:      client,
 	}
 }
 
 func (this *DocumentReader) Read(path string, document interface{}) error {
-	request, err := this.s3.SignedGetRequest(this.bucket, s3.Key(path))
+	request, err := s3.NewRequest(s3.GET, this.credentials, this.storage, s3.Key(path))
 	if err != nil {
 		return fmt.Errorf("Could not create signed request: '%s'", err.Error())
 	}
@@ -37,6 +38,7 @@ func (this *DocumentReader) Read(path string, document interface{}) error {
 	if err != nil {
 		return fmt.Errorf("HTTP Client Error: '%s'", err.Error())
 	}
+
 	defer response.Body.Close()
 
 	if response.StatusCode == http.StatusNotFound {

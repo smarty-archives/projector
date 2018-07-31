@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/smartystreets/logging"
 	"github.com/smartystreets/projector"
@@ -17,16 +18,16 @@ import (
 type DocumentWriter struct {
 	logger *logging.Logger
 
-	bucket string
-	s3     *s3.S3
-	client HTTPClient
+	credentials s3.Option
+	storage     s3.Option
+	client      HTTPClient
 }
 
-func NewDocumentWriter(bucket string, s3 *s3.S3, client HTTPClient) *DocumentWriter {
+func NewDocumentWriter(storage *url.URL, accessKey, secretKey string, client HTTPClient) *DocumentWriter {
 	return &DocumentWriter{
-		s3:     s3,
-		bucket: bucket,
-		client: client,
+		credentials: s3.Credentials(accessKey, secretKey),
+		storage:     s3.StorageAddress(storage),
+		client:      client,
 	}
 }
 
@@ -57,14 +58,15 @@ func (this *DocumentWriter) md5Checksum(body []byte) string {
 }
 
 func (this *DocumentWriter) buildRequest(path string, body []byte, checksum string) *http.Request {
-	request, err := this.s3.SignedPutRequest(
-		this.bucket,
+	request, err := s3.NewRequest(
+		s3.PUT,
+		this.credentials,
+		this.storage,
 		s3.Key(path),
-		s3.Content(body),
-		s3.ContentLength(int64(len(body))),
+		s3.ContentBytes(body),
 		s3.ContentType("application/json"),
-		s3.ContentMD5(checksum),
 		s3.ContentEncoding("gzip"),
+		s3.ContentMD5(checksum),
 		s3.ServerSideEncryption(s3.ServerSideEncryptionAES256),
 	)
 	if err != nil {
@@ -83,7 +85,7 @@ func (this *DocumentWriter) handleResponse(response *http.Response, err error) {
 		return
 	}
 
-	defer response.Body.Close() // release connection back to pool
+	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
 		this.logger.Panic(fmt.Errorf("Non-200 HTTP Status Code: %d %s", response.StatusCode, response.Status))
