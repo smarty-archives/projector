@@ -7,13 +7,13 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"strings"
 	"testing"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 	"github.com/smartystreets/logging"
+	"github.com/smartystreets/nu"
 )
 
 func TestDocumentReaderFixture(t *testing.T) {
@@ -32,7 +32,7 @@ type DocumentReaderFixture struct {
 func (this *DocumentReaderFixture) Setup() {
 	this.path = "/document/path"
 	this.client = &FakeHTTPGetClient{}
-	address, _ := url.Parse("https://bucket.s3-us-west-1.amazonaws.com/")
+	address := nu.URLParsed("https://bucket.s3-us-west-1.amazonaws.com/")
 	this.reader = NewDocumentReader(address, "access", "secret", this.client)
 	this.reader.logger = logging.Capture()
 	this.document = &Document{}

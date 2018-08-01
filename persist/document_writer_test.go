@@ -13,6 +13,7 @@ import (
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 	"github.com/smartystreets/logging"
+	"github.com/smartystreets/nu"
 	"github.com/smartystreets/projector"
 )
 
@@ -28,7 +29,8 @@ type DocumentWriterFixture struct {
 
 func (this *DocumentWriterFixture) Setup() {
 	this.client = NewFakeHTTPClientForWriting()
-	this.writer = NewDocumentWriter("smarty-bucket", "access", "secret", this.client)
+	address := nu.URLParsed("https://bucket.s3-us-west-1.amazonaws.com/")
+	this.writer = NewDocumentWriter(address, "access", "secret", this.client)
 	this.writer.logger = logging.Capture()
 }
 
