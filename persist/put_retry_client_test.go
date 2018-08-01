@@ -1,6 +1,7 @@
 package persist
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -164,3 +165,10 @@ func (this *ClosingReader) Close() error {
 	this.closed = true
 	return nil
 }
+
+//////////////////////////////////////////////////////
+
+type nopCloser struct{ io.ReadSeeker }
+
+func newNopCloser(body []byte) *nopCloser { return &nopCloser{bytes.NewReader(body)} }
+func (this *nopCloser) Close() error      { return nil }

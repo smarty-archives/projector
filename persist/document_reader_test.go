@@ -13,6 +13,7 @@ import (
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 	"github.com/smartystreets/logging"
+	"github.com/smartystreets/nu"
 )
 
 func TestDocumentReaderFixture(t *testing.T) {
@@ -31,15 +32,10 @@ type DocumentReaderFixture struct {
 func (this *DocumentReaderFixture) Setup() {
 	this.path = "/document/path"
 	this.client = &FakeHTTPGetClient{}
-	this.reader = NewDocumentReader(this.client)
+	address := nu.URLParsed("https://bucket.s3-us-west-1.amazonaws.com/")
+	this.reader = NewDocumentReader(address, "access", "secret", this.client)
 	this.reader.logger = logging.Capture()
 	this.document = &Document{}
-}
-
-func (this *DocumentReaderFixture) TestRequestInvalid_ClientIgnored() {
-	this.path = "%%%%%%%%"
-	this.assertPanic(`Could not create request: parse %%%%%%%%: invalid URL escape "%%%"`)
-	this.So(this.client.called, should.BeFalse)
 }
 
 func (this *DocumentReaderFixture) TestClientErrorPreventsDocumentReading() {
@@ -73,6 +69,7 @@ func (this *DocumentReaderFixture) TestValidUncompressedResponse_PopulatesDocume
 	var ValidUncompressedResponse = &http.Response{StatusCode: 200, Body: newHTTPBody(`{"ID": 1234}`)}
 	this.client.response = ValidUncompressedResponse
 	this.read()
+	this.So(this.client.request.URL.Path, should.Equal, "/document/path")
 	this.So(this.document.ID, should.Equal, 1234)
 	this.So(ValidUncompressedResponse.Body.(*FakeHTTPResponseBody).closed, should.BeTrue)
 }
@@ -106,11 +103,11 @@ func (this *DocumentReaderFixture) assertPanic(message string) {
 type FakeHTTPGetClient struct {
 	err      error
 	response *http.Response
-	called   bool
+	request  *http.Request
 }
 
 func (this *FakeHTTPGetClient) Do(request *http.Request) (*http.Response, error) {
-	this.called = true
+	this.request = request
 	return this.response, this.err
 }
 

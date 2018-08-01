@@ -13,6 +13,7 @@ import (
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 	"github.com/smartystreets/logging"
+	"github.com/smartystreets/nu"
 	"github.com/smartystreets/projector"
 )
 
@@ -28,7 +29,8 @@ type DocumentWriterFixture struct {
 
 func (this *DocumentWriterFixture) Setup() {
 	this.client = NewFakeHTTPClientForWriting()
-	this.writer = NewDocumentWriter(this.client)
+	address := nu.URLParsed("https://bucket.s3-us-west-1.amazonaws.com/")
+	this.writer = NewDocumentWriter(address, "access", "secret", this.client)
 	this.writer.logger = logging.Capture()
 }
 
@@ -38,13 +40,14 @@ func (this *DocumentWriterFixture) TestDocumentIsTranslatedToAnHTTPRequest() {
 	this.writer.Write(writableDocument)
 	this.So(this.client.received, should.NotBeNil)
 	this.So(this.client.received.URL.Path, should.Equal, writableDocument.Path())
-	this.So(this.client.received.Method, should.HaveSameTypeAs, "PUT")
+	this.So(this.client.received.Method, should.Equal, "PUT")
 	body, _ := ioutil.ReadAll(this.client.received.Body)
 	this.So(decodeBody(body), should.Equal, `{"Message":"Hello, World!"}`)
 	this.So(this.client.received.ContentLength, should.Equal, len(body))
 	this.So(this.client.received.Header.Get("Content-Encoding"), should.Equal, "gzip")
 	this.So(this.client.received.Header.Get("Content-Type"), should.Equal, "application/json")
-	this.So(this.client.received.Header.Get("Content-Md5"), should.NotBeBlank)
+	this.So(this.client.received.Header.Get("Content-MD5"), should.NotBeBlank)
+	this.So(this.client.received.Header.Get("x-amz-server-side-encryption"), should.NotBeBlank)
 	this.So(this.client.responseBody.closed, should.Equal, 1)
 }
 func decodeBody(body []byte) string {
@@ -59,13 +62,6 @@ func decodeBody(body []byte) string {
 func (this *DocumentWriterFixture) TestDocumentWithIncompatibleFieldCausesPanicUponSerialization() {
 	action := func() { this.writer.Write(badJSONDocument) }
 	this.So(action, should.PanicWith, "json: unsupported type: chan int")
-}
-
-///////////////////////////////////////////////////////////////////
-
-func (this *DocumentWriterFixture) TestIllegalURLCharactersInPathCausesPanic() {
-	action := func() { this.writer.Write(badPathDocument) }
-	this.So(action, should.Panic)
 }
 
 ///////////////////////////////////////////////////////////////////
