@@ -30,7 +30,9 @@ func (this *PutRetryClient) Do(request *http.Request) (*http.Response, error) {
 
 		if err == nil && response.StatusCode == http.StatusOK {
 			return response, nil
-		} else if err != nil && current > logAfterAttempts {
+		} else if err != nil && response == nil && current > logAfterAttempts {
+			this.logger.Println("[WARN] Unexpected response from target storage:", err)
+		} else if err != nil && response != nil && current > logAfterAttempts {
 			this.logger.Println("[WARN] Unexpected response from target storage:", err, response.StatusCode, response.Status)
 		} else if err == nil && response.Body != nil && current > logAfterAttempts {
 			this.logger.Printf("[WARN] Target host rejected request ('%s'):\n%s\n", request.URL.Path, readResponse(response))
