@@ -30,13 +30,13 @@ func (this *PutRetryClient) Do(request *http.Request) (*http.Response, error) {
 
 		if err == nil && response.StatusCode == http.StatusOK {
 			return response, nil
-		} else if err != nil && current > 0 {
+		} else if err != nil && current > logAfterAttempts {
 			this.logger.Println("[WARN] Unexpected response from target storage:", err, response.StatusCode, response.Status)
-		} else if err == nil && response.Body != nil {
+		} else if err == nil && response.Body != nil && current > logAfterAttempts {
 			this.logger.Printf("[WARN] Target host rejected request ('%s'):\n%s\n", request.URL.Path, readResponse(response))
 		}
 
-		this.sleeper.Sleep(time.Second * 10)
+		this.sleeper.Sleep(sleepTime)
 	}
 
 	return nil, errors.New("Max retries exceeded. Unable to connect.")
@@ -55,3 +55,8 @@ func (this *retryBuffer) Close() error {
 	this.Seek(0, 0) // seeks to the beginning (to allow retry) when the buffer is "Closed"
 	return nil
 }
+
+const (
+	sleepTime        = time.Second * 5
+	logAfterAttempts = 3
+)
