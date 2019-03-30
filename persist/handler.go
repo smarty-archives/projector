@@ -2,10 +2,7 @@ package persist
 
 import (
 	"sync"
-	"time"
 
-	"github.com/smartystreets/clock"
-	"github.com/smartystreets/metrics"
 	"github.com/smartystreets/projector"
 )
 
@@ -30,7 +27,6 @@ func NewHandler(input chan projector.DocumentMessage, output chan<- interface{},
 
 func (this *Handler) Listen() {
 	for message := range this.input {
-		metrics.Measure(DepthPersistQueue, int64(len(this.input)))
 
 		this.addToBatch(message)
 
@@ -56,18 +52,16 @@ func (this *Handler) handleCurrentBatch(receipt interface{}) {
 
 func (this *Handler) persistPendingDocuments() {
 	this.waiter.Add(len(this.pending))
-	metrics.Measure(DocumentsToSave, int64(len(this.pending)))
 
 	for _, document := range this.pending {
 		go this.persist(document)
 	}
 
 	this.waiter.Wait()
+
 }
 func (this *Handler) persist(document projector.Document) {
-	started := clock.UTCNow()
 	_, _ = this.writer.Write(document)
-	metrics.Measure(DocumentWriteLatency, metrics.Milliseconds(time.Since(started)))
 	this.waiter.Done()
 }
 
@@ -78,9 +72,3 @@ func (this *Handler) sendLatestAcknowledgement(receipt interface{}) {
 func (this *Handler) prepareForNextBatch() {
 	this.pending = make(map[string]projector.Document)
 }
-
-var (
-	DepthPersistQueue    = metrics.AddGauge("pipeline:persist-phase-backlog-depth", time.Second*300)
-	DocumentsToSave      = metrics.AddGauge("pipeline:documents-to-save", time.Second*300)
-	DocumentWriteLatency = metrics.AddGauge("pipeline:document-write-latency-milliseconds", time.Second*300)
-)
