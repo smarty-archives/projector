@@ -127,10 +127,11 @@ func NewFakeWriter() *FakeWriter {
 	return &FakeWriter{mutex: &sync.Mutex{}}
 }
 
-func (this *FakeWriter) Write(document projector.Document) {
+func (this *FakeWriter) Write(document projector.Document) (interface{}, error) {
 	this.mutex.Lock()
 	defer this.mutex.Unlock()
 	this.written = append(this.written, document.Path())
+	return nil, nil
 }
 
 // ///////////////////////////////////

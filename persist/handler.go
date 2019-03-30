@@ -66,7 +66,7 @@ func (this *Handler) persistPendingDocuments() {
 }
 func (this *Handler) persist(document projector.Document) {
 	started := clock.UTCNow()
-	this.writer.Write(document)
+	_, _ = this.writer.Write(document)
 	metrics.Measure(DocumentWriteLatency, metrics.Milliseconds(time.Since(started)))
 	this.waiter.Done()
 }

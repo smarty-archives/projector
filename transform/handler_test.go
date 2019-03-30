@@ -81,7 +81,7 @@ func (this *HandlerFixture) TestTransformerInvokedForMultipleSetsOfInputMessages
 
 	this.input <- this.firstInput
 	this.input <- this.secondInput
-	time.Sleep(time.Millisecond*10)
+	time.Sleep(time.Millisecond)
 	this.input <- this.thirdInput
 	this.input <- this.fourthInput
 	close(this.input)

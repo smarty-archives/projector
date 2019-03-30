@@ -11,8 +11,10 @@ type Reader interface {
 	ReadPanic(path string, document interface{})
 }
 
+// Writer writes the document and gives back the updated generation/etag/ID of the document with storage.
+// Even in the case of an error, the ID will be returned
 type Writer interface {
-	Write(projector.Document)
+	Write(projector.Document) (interface{}, error)
 }
 
 type HTTPClient interface {

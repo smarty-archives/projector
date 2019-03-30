@@ -36,12 +36,13 @@ func NewS3Writer(storage *url.URL, accessKey, secretKey string, client HTTPClien
 	}
 }
 
-func (this *S3Writer) Write(document projector.Document) {
+func (this *S3Writer) Write(document projector.Document) (interface{}, error) {
 	body := this.serialize(document)
 	checksum := this.md5Checksum(body)
 	request := this.buildRequest(document.Path(), body, checksum)
 	response, err := this.client.Do(request)
 	this.handleResponse(response, err)
+	return nil, err
 }
 
 func (this *S3Writer) serialize(document projector.Document) []byte {
