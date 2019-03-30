@@ -78,7 +78,7 @@ func (this *S3Fixture) TestValidCompressedResponse_PopulatesDocument() {
 
 	validCompressedResponse.Header = make(http.Header)
 	validCompressedResponse.Header.Set("Content-Encoding", "gzip")
-	validCompressedResponse.Header.Set("Etag", "abc1234")
+	validCompressedResponse.Header.Set("ETag", "abc1234")
 
 	targetBuffer := bytes.NewBuffer([]byte{})
 	writer := gzip.NewWriter(targetBuffer)

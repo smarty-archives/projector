@@ -61,7 +61,7 @@ func (this *S3Reader) Read(path string, document interface{}) (interface{}, erro
 		return nil, fmt.Errorf("Document read error: '%s'", err.Error())
 	}
 
-	return response.Header.Get("Etag"), nil
+	return response.Header.Get("ETag"), nil
 }
 
 func (this *S3Reader) ReadPanic(path string, document interface{}) interface{} {

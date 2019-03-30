@@ -49,7 +49,7 @@ func (this *S3WriterFixture) TestDocumentIsTranslatedToAnHTTPRequest() {
 	this.So(this.client.received.Header.Get("Content-MD5"), should.NotBeBlank)
 	this.So(this.client.received.Header.Get("x-amz-server-side-encryption"), should.NotBeBlank)
 	this.So(this.client.responseBody.closed, should.Equal, 1)
-	this.So(etag, should.Equal, "12345")
+	this.So(etag, should.Equal, "etag-here")
 }
 func decodeBody(body []byte) string {
 	buffer := bytes.NewReader(body)
@@ -108,7 +108,7 @@ func (this *FakeHTTPClientForWriting) Do(request *http.Request) (*http.Response,
 	}
 
 	response.Header = make(http.Header)
-	response.Header.Set("Etag", "12345")
+	response.Header.Set("ETag", "etag-here")
 
 	return response, this.err
 }

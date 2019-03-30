@@ -97,5 +97,5 @@ func (this *S3Writer) handleResponse(response *http.Response, err error) (interf
 		return nil, err
 	}
 
-	return response.Header.Get("Etag"), nil
+	return response.Header.Get("ETag"), nil
 }
