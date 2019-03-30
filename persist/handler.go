@@ -44,7 +44,7 @@ func (this *Handler) Listen() {
 
 func (this *Handler) addToBatch(message projector.DocumentMessage) {
 	for _, document := range message.Documents {
-		this.pending[document.Path()] = document
+		this.pending[document.Path()] = document // only store the latest
 	}
 }
 
