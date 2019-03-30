@@ -26,7 +26,7 @@ func (this *Handler) Listen() {
 
 		metrics.Measure(transformQueueDepth, int64(len(this.input)))
 
-		this.transformer.TransformAllDocuments(message.Message, now)
+		this.transformer.TransformAllDocuments(now, message.Message)
 
 		if len(this.input) == 0 {
 			this.output <- projector.DocumentMessage{

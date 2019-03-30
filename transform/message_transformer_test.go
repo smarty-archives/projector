@@ -34,7 +34,7 @@ func (this *MessageTransformerFixture) Setup() {
 // //////////////////////////////////////////////////////////
 
 func (this *MessageTransformerFixture) TestLapseDocumentOverwritesOriginal() {
-	this.transformer.TransformAllDocuments("My Message", this.now)
+	this.transformer.TransformAllDocuments(this.now, "My Message")
 
 	this.So(this.transformer.documents[0].Path(), should.Equal, "1")
 }
@@ -42,7 +42,7 @@ func (this *MessageTransformerFixture) TestLapseDocumentOverwritesOriginal() {
 // //////////////////////////////////////////////////////////
 
 func (this *MessageTransformerFixture) TestMessageHandledByDocuments() {
-	this.transformer.TransformAllDocuments("My Message", this.now)
+	this.transformer.TransformAllDocuments(this.now, "My Message")
 
 	fakeDocument := this.transformer.documents[0].(*FakeDocument)
 	this.So(fakeDocument.handledMessage, should.Equal, "My Message")
@@ -51,7 +51,7 @@ func (this *MessageTransformerFixture) TestMessageHandledByDocuments() {
 // //////////////////////////////////////////////////////////
 
 func (this *MessageTransformerFixture) TestNilMessageSkipped() {
-	this.transformer.TransformAllDocuments(nil, this.now)
+	this.transformer.TransformAllDocuments(this.now, nil)
 
 	fakeDocument := this.transformer.documents[0].(*FakeDocument)
 	this.So(fakeDocument.handled, should.Equal, 0)

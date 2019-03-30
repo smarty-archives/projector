@@ -20,7 +20,7 @@ func NewMessageTransformer(documents []projector.Document, cloner Cloner) *Messa
 	}
 }
 
-func (this *MessageTransformer) TransformAllDocuments(message interface{}, now time.Time) {
+func (this *MessageTransformer) TransformAllDocuments(now time.Time, message interface{}) {
 	if message == nil {
 		return
 	}

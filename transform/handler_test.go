@@ -80,7 +80,7 @@ func NewFakeTransformer() *FakeTransformer {
 	}
 }
 
-func (this *FakeTransformer) TransformAllDocuments(message interface{}, now time.Time) {
+func (this *FakeTransformer) TransformAllDocuments(now time.Time, message interface{}) {
 	this.received[message] = now
 }
 
