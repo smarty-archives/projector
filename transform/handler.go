@@ -1,11 +1,8 @@
 package transform
 
 import (
-	"time"
-
 	"github.com/smartystreets/clock"
 	"github.com/smartystreets/messaging"
-	"github.com/smartystreets/metrics"
 )
 
 type Handler struct {
@@ -13,6 +10,7 @@ type Handler struct {
 	output      chan<- interface{}
 	transformer Transformer
 	clock       *clock.Clock
+	messages    []interface{}
 }
 
 func NewHandler(input <-chan messaging.Delivery, output chan<- interface{}, transformer Transformer) *Handler {
@@ -20,24 +18,17 @@ func NewHandler(input <-chan messaging.Delivery, output chan<- interface{}, tran
 }
 
 func (this *Handler) Listen() {
-	var messages []interface{}
-
 	for delivery := range this.input {
-		messages = append(messages, delivery.Message)
-		metrics.Measure(transformQueueDepth, int64(len(this.input)))
-
-		if len(this.input) > 0 {
-			continue
+		this.messages = append(this.messages, delivery.Message)
+		if len(this.input) == 0 {
+			this.transform(delivery.Receipt)
 		}
-
-		now := this.clock.UTCNow()
-		this.transformer.TransformAllDocuments(now, messages...)
-		messages = messages[0:0]
-
-		this.output <- delivery.Receipt
 	}
 
 	close(this.output)
 }
-
-var transformQueueDepth = metrics.AddGauge("pipeline:transform-phase-backlog-depth", time.Second*30)
+func (this *Handler) transform(receipt interface{}) {
+	this.transformer.TransformAllDocuments(this.clock.UTCNow(), this.messages...)
+	this.output <- receipt
+	this.messages = this.messages[0:0]
+}
