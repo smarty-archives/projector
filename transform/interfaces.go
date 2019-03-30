@@ -8,7 +8,7 @@ import (
 )
 
 type Transformer interface {
-	TransformAllDocuments(now time.Time, message interface{})
+	TransformAllDocuments(now time.Time, messages ...interface{})
 	Collect() []projector.Document
 }
 

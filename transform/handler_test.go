@@ -80,8 +80,10 @@ func NewFakeTransformer() *FakeTransformer {
 	}
 }
 
-func (this *FakeTransformer) TransformAllDocuments(now time.Time, message interface{}) {
-	this.received[message] = now
+func (this *FakeTransformer) TransformAllDocuments(now time.Time, messages ...interface{}) {
+	for _, message := range messages {
+		this.received[message] = now
+	}
 }
 
 var collectedDocuments = []projector.Document{

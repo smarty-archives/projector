@@ -41,11 +41,11 @@ func (this *MessageTransformerFixture) TestLapseDocumentOverwritesOriginal() {
 
 // //////////////////////////////////////////////////////////
 
-func (this *MessageTransformerFixture) TestMessageHandledByDocuments() {
-	this.transformer.TransformAllDocuments(this.now, "My Message")
+func (this *MessageTransformerFixture) TestMessagesHandledByDocuments() {
+	this.transformer.TransformAllDocuments(this.now, "My Message1", "My Message2")
 
 	fakeDocument := this.transformer.documents[0].(*FakeDocument)
-	this.So(fakeDocument.handledMessage, should.Equal, "My Message")
+	this.So(fakeDocument.appliedMessages, should.Resemble, []interface{}{"My Message1", "My Message2"})
 }
 
 // //////////////////////////////////////////////////////////
@@ -54,7 +54,7 @@ func (this *MessageTransformerFixture) TestNilMessageSkipped() {
 	this.transformer.TransformAllDocuments(this.now, nil)
 
 	fakeDocument := this.transformer.documents[0].(*FakeDocument)
-	this.So(fakeDocument.handled, should.Equal, 0)
+	this.So(fakeDocument.applies, should.Equal, 0)
 }
 
 // //////////////////////////////////////////////////////////
@@ -82,10 +82,10 @@ func (this *MessageTransformerFixture) TestMultipleCollectsOnlyReturnsOnce() {
 // //////////////////////////////////////////////////////////
 
 type FakeDocument struct {
-	depth          int
-	handled        int
-	handledMessage interface{}
-	lapsed         time.Time
+	depth           int
+	applies         int
+	appliedMessages []interface{}
+	lapsed          time.Time
 }
 
 func (this *FakeDocument) Path() string {
@@ -93,11 +93,11 @@ func (this *FakeDocument) Path() string {
 }
 func (this *FakeDocument) Lapse(now time.Time) projector.Document {
 	this.lapsed = now
-	return &FakeDocument{depth: this.depth + 1}
+	return &FakeDocument{depth: this.depth + 1, applies: this.applies, appliedMessages: this.appliedMessages}
 }
 func (this *FakeDocument) Apply(message interface{}) bool {
-	this.handled++
-	this.handledMessage = message
+	this.applies++
+	this.appliedMessages = append(this.appliedMessages, message)
 	return true
 }
 
