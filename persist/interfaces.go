@@ -1,6 +1,7 @@
 package persist
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/smartystreets/projector"
@@ -25,3 +26,5 @@ type Storage interface {
 type HTTPClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
+
+var ConcurrencyError = errors.New("the document has been updated by another process")

@@ -37,7 +37,7 @@ func (this *S3WriterFixture) Setup() {
 // /////////////////////////////////////////////////////////////////
 
 func (this *S3WriterFixture) TestDocumentIsTranslatedToAnHTTPRequest() {
-	_, _ = this.writer.Write(writableDocument)
+	etag, _ := this.writer.Write(writableDocument)
 	this.So(this.client.received, should.NotBeNil)
 	this.So(this.client.received.URL.Path, should.Equal, writableDocument.Path())
 	this.So(this.client.received.Method, should.Equal, "PUT")
@@ -49,6 +49,7 @@ func (this *S3WriterFixture) TestDocumentIsTranslatedToAnHTTPRequest() {
 	this.So(this.client.received.Header.Get("Content-MD5"), should.NotBeBlank)
 	this.So(this.client.received.Header.Get("x-amz-server-side-encryption"), should.NotBeBlank)
 	this.So(this.client.responseBody.closed, should.Equal, 1)
+	this.So(etag, should.Equal, "12345")
 }
 func decodeBody(body []byte) string {
 	buffer := bytes.NewReader(body)
@@ -99,11 +100,17 @@ func NewFakeHTTPClientForWriting() *FakeHTTPClientForWriting {
 }
 func (this *FakeHTTPClientForWriting) Do(request *http.Request) (*http.Response, error) {
 	this.received = request
-	return &http.Response{
+
+	response := &http.Response{
 		StatusCode: this.statusCode,
 		Status:     this.statusMessage,
 		Body:       this.responseBody,
-	}, this.err
+	}
+
+	response.Header = make(http.Header)
+	response.Header.Set("Etag", "12345")
+
+	return response, this.err
 }
 
 // ///////////////////////////////////////////////////////////////

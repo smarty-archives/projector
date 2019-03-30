@@ -41,8 +41,7 @@ func (this *S3Writer) Write(document projector.Document) (interface{}, error) {
 	checksum := this.md5Checksum(body)
 	request := this.buildRequest(document.Path(), body, checksum)
 	response, err := this.client.Do(request)
-	this.handleResponse(response, err)
-	return nil, err
+	return this.handleResponse(response, err)
 }
 
 func (this *S3Writer) serialize(document projector.Document) []byte {
@@ -85,16 +84,18 @@ func (this *S3Writer) buildRequest(path string, body []byte, checksum string) *h
 // because the inner client should be handling retry indefinitely, until the service
 // response. This is here merely for the sake of completeness, and to bullet-proof
 // the software in case the behavior of the inner client changes in the future.
-func (this *S3Writer) handleResponse(response *http.Response, err error) {
+func (this *S3Writer) handleResponse(response *http.Response, err error) (interface{}, error) {
 	if err != nil {
 		this.logger.Panic(err)
-		return
+		return nil, err
 	}
 
 	defer func() { _ = response.Body.Close() }()
 
 	if response.StatusCode != http.StatusOK {
 		this.logger.Panic(fmt.Errorf("Non-200 HTTP Status Code: %d %s", response.StatusCode, response.Status))
-		return
+		return nil, err
 	}
+
+	return response.Header.Get("Etag"), nil
 }
