@@ -19,7 +19,7 @@ type HandlerFixture struct {
 	*gunit.Fixture
 
 	input       chan messaging.Delivery
-	output      chan projector.DocumentMessage
+	output      chan interface{}
 	transformer *FakeTransformer
 	handler     *Handler
 	firstInput  messaging.Delivery
@@ -32,7 +32,7 @@ type HandlerFixture struct {
 func (this *HandlerFixture) Setup() {
 	this.now = clock.UTCNow()
 	this.input = make(chan messaging.Delivery, 2)
-	this.output = make(chan projector.DocumentMessage, 2)
+	this.output = make(chan interface{}, 2)
 	this.transformer = NewFakeTransformer()
 	this.handler = NewHandler(this.input, this.output, this.transformer)
 	this.handler.clock = clock.Freeze(this.now)
@@ -68,10 +68,7 @@ func (this *HandlerFixture) TestTransformerInvokedForEveryInputMessage() {
 		this.firstInput.Message:  this.now,
 		this.secondInput.Message: this.now,
 	})
-	this.So(<-this.output, should.Resemble, projector.DocumentMessage{
-		Receipt:   this.secondInput.Receipt,
-		Documents: collectedDocuments,
-	})
+	this.So(<-this.output, should.Equal, this.secondInput.Receipt)
 
 	<-this.output
 }
@@ -91,14 +88,8 @@ func (this *HandlerFixture) TestTransformerInvokedForMultipleSetsOfInputMessages
 	this.So(this.transformer.received[this.thirdInput.Message], should.Equal, this.now)
 	this.So(this.transformer.received[this.fourthInput.Message], should.Equal, this.now)
 
-	this.So(<-this.output, should.Resemble, projector.DocumentMessage{
-		Receipt:   this.secondInput.Receipt,
-		Documents: collectedDocuments,
-	})
-	this.So(<-this.output, should.Resemble, projector.DocumentMessage{
-		Receipt:   this.fourthInput.Receipt,
-		Documents: collectedDocuments,
-	})
+	this.So(<-this.output, should.Resemble, this.secondInput.Receipt)
+	this.So(<-this.output, should.Resemble, this.fourthInput.Receipt)
 
 	<-this.output
 }
@@ -121,14 +112,14 @@ func (this *FakeTransformer) TransformAllDocuments(now time.Time, messages ...in
 	}
 }
 
-var collectedDocuments = []projector.Document{
+var modifiedDocuments = []projector.Document{
 	&fakeDocument{path: "a"},
 	&fakeDocument{path: "b"},
 	&fakeDocument{path: "c"},
 }
 
-func (this *FakeTransformer) Collect() []projector.Document {
-	return collectedDocuments
+func (this *FakeTransformer) Modified() []projector.Document {
+	return modifiedDocuments
 }
 
 // ///////////////////////////////////////////////////////////////

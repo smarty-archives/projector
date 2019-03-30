@@ -8,15 +8,13 @@ import (
 
 type MessageTransformer struct {
 	documents []projector.Document
-	changed   map[string]projector.Document
-	cloner    Cloner
+	changed   map[projector.Document]struct{}
 }
 
-func NewMessageTransformer(documents []projector.Document, cloner Cloner) *MessageTransformer {
+func NewMessageTransformer(documents []projector.Document) *MessageTransformer {
 	return &MessageTransformer{
 		documents: documents,
-		changed:   make(map[string]projector.Document, 16),
-		cloner:    cloner,
+		changed:   make(map[projector.Document]struct{}, 16),
 	}
 }
 
@@ -34,18 +32,7 @@ func (this *MessageTransformer) transformAllDocuments(now time.Time, message int
 		doc = doc.Lapse(now)
 		this.documents[i] = doc
 		if doc.Apply(message) {
-			this.changed[doc.Path()] = doc
+			this.changed[doc] = struct{}{}
 		}
 	}
-}
-
-func (this *MessageTransformer) Collect() []projector.Document {
-	var docs []projector.Document
-
-	for key, doc := range this.changed {
-		delete(this.changed, key)
-		docs = append(docs, this.cloner.Clone(doc))
-	}
-
-	return docs
 }

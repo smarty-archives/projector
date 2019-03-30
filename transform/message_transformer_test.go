@@ -20,18 +20,14 @@ type MessageTransformerFixture struct {
 
 	documents   []projector.Document
 	transformer *MessageTransformer
-	cloner      *FakeCloner
 	now         time.Time
 }
 
 func (this *MessageTransformerFixture) Setup() {
 	this.documents = []projector.Document{&FakeDocument{}}
-	this.cloner = &FakeCloner{}
-	this.transformer = NewMessageTransformer(this.documents, this.cloner)
+	this.transformer = NewMessageTransformer(this.documents)
 	this.now = clock.UTCNow()
 }
-
-// //////////////////////////////////////////////////////////
 
 func (this *MessageTransformerFixture) TestLapseDocumentOverwritesOriginal() {
 	this.transformer.TransformAllDocuments(this.now, "My Message")
@@ -39,16 +35,12 @@ func (this *MessageTransformerFixture) TestLapseDocumentOverwritesOriginal() {
 	this.So(this.transformer.documents[0].Path(), should.Equal, "1")
 }
 
-// //////////////////////////////////////////////////////////
-
 func (this *MessageTransformerFixture) TestMessagesHandledByDocuments() {
 	this.transformer.TransformAllDocuments(this.now, "My Message1", "My Message2")
 
 	fakeDocument := this.transformer.documents[0].(*FakeDocument)
 	this.So(fakeDocument.appliedMessages, should.Resemble, []interface{}{"My Message1", "My Message2"})
 }
-
-// //////////////////////////////////////////////////////////
 
 func (this *MessageTransformerFixture) TestNilMessageSkipped() {
 	this.transformer.TransformAllDocuments(this.now, nil)
@@ -59,29 +51,8 @@ func (this *MessageTransformerFixture) TestNilMessageSkipped() {
 
 // //////////////////////////////////////////////////////////
 
-func (this *MessageTransformerFixture) TestCollectReturnsClonedDocuments() {
-	transformer := NewMessageTransformer(nil, this.cloner)
-	transformer.changed["/path/to/doc/1"] = &FakeDocument{}
-	transformer.changed["/path/to/doc/2"] = &FakeDocument{}
-
-	for _, item := range transformer.Collect() {
-		this.So(item.(*FakeDocument).depth, should.Equal, 1)
-	}
-}
-
-// //////////////////////////////////////////////////////////
-
-func (this *MessageTransformerFixture) TestMultipleCollectsOnlyReturnsOnce() {
-	transformer := NewMessageTransformer(nil, this.cloner)
-	transformer.changed["/path/to/doc/1"] = &FakeDocument{}
-
-	this.So(transformer.Collect(), should.NotBeEmpty)
-	this.So(transformer.Collect(), should.BeEmpty)
-}
-
-// //////////////////////////////////////////////////////////
-
 type FakeDocument struct {
+	skip            bool
 	depth           int
 	applies         int
 	appliedMessages []interface{}
@@ -93,20 +64,14 @@ func (this *FakeDocument) Path() string {
 }
 func (this *FakeDocument) Lapse(now time.Time) projector.Document {
 	this.lapsed = now
-	return &FakeDocument{depth: this.depth + 1, applies: this.applies, appliedMessages: this.appliedMessages}
+	return &FakeDocument{skip: this.skip, depth: this.depth + 1, applies: this.applies, appliedMessages: this.appliedMessages}
 }
 func (this *FakeDocument) Apply(message interface{}) bool {
+	if this.skip {
+		return false
+	}
+
 	this.applies++
 	this.appliedMessages = append(this.appliedMessages, message)
 	return true
-}
-
-// //////////////////////////////////////////////////////////
-
-type FakeCloner struct {
-}
-
-func (this *FakeCloner) Clone(document projector.Document) projector.Document {
-	document.(*FakeDocument).depth++
-	return document
 }
