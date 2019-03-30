@@ -21,18 +21,23 @@ func NewHandler(input <-chan messaging.Delivery, output chan<- projector.Documen
 }
 
 func (this *Handler) Listen() {
-	for message := range this.input {
-		now := this.clock.UTCNow()
+	var messages []interface{}
 
+	for delivery := range this.input {
+		messages = append(messages, delivery.Message)
 		metrics.Measure(transformQueueDepth, int64(len(this.input)))
 
-		this.transformer.TransformAllDocuments(now, message.Message)
+		if len(this.input) > 0 {
+			continue
+		}
 
-		if len(this.input) == 0 {
-			this.output <- projector.DocumentMessage{
-				Receipt:   message.Receipt,
-				Documents: this.transformer.Collect(),
-			}
+		now := this.clock.UTCNow()
+		this.transformer.TransformAllDocuments(now, messages...)
+		messages = messages[0:0]
+
+		this.output <- projector.DocumentMessage{
+			Receipt:   delivery.Receipt,
+			Documents: this.transformer.Collect(),
 		}
 	}
 

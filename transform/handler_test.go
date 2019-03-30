@@ -24,6 +24,8 @@ type HandlerFixture struct {
 	handler     *Handler
 	firstInput  messaging.Delivery
 	secondInput messaging.Delivery
+	thirdInput  messaging.Delivery
+	fourthInput messaging.Delivery
 	now         time.Time
 }
 
@@ -37,11 +39,19 @@ func (this *HandlerFixture) Setup() {
 
 	this.firstInput = messaging.Delivery{
 		Message: 1,
-		Receipt: &FakeAcknowledgement{},
+		Receipt: 11,
 	}
 	this.secondInput = messaging.Delivery{
 		Message: 2,
-		Receipt: &FakeAcknowledgement{},
+		Receipt: 12,
+	}
+	this.thirdInput = messaging.Delivery{
+		Message: 3,
+		Receipt: 13,
+	}
+	this.fourthInput = messaging.Delivery{
+		Message: 4,
+		Receipt: 14,
 	}
 }
 
@@ -63,9 +73,34 @@ func (this *HandlerFixture) TestTransformerInvokedForEveryInputMessage() {
 		Documents: collectedDocuments,
 	})
 
-	for range this.output {
-		// will block unless output channel is closed
-	}
+	<-this.output
+}
+
+func (this *HandlerFixture) TestTransformerInvokedForMultipleSetsOfInputMessages() {
+	go this.handler.Listen()
+
+	this.input <- this.firstInput
+	this.input <- this.secondInput
+	time.Sleep(time.Millisecond*10)
+	this.input <- this.thirdInput
+	this.input <- this.fourthInput
+	close(this.input)
+
+	this.So(this.transformer.received[this.firstInput.Message], should.Equal, this.now)
+	this.So(this.transformer.received[this.secondInput.Message], should.Equal, this.now)
+	this.So(this.transformer.received[this.thirdInput.Message], should.Equal, this.now)
+	this.So(this.transformer.received[this.fourthInput.Message], should.Equal, this.now)
+
+	this.So(<-this.output, should.Resemble, projector.DocumentMessage{
+		Receipt:   this.secondInput.Receipt,
+		Documents: collectedDocuments,
+	})
+	this.So(<-this.output, should.Resemble, projector.DocumentMessage{
+		Receipt:   this.fourthInput.Receipt,
+		Documents: collectedDocuments,
+	})
+
+	<-this.output
 }
 
 // ///////////////////////////////////////////////////////////////
@@ -95,12 +130,6 @@ var collectedDocuments = []projector.Document{
 func (this *FakeTransformer) Collect() []projector.Document {
 	return collectedDocuments
 }
-
-// ///////////////////////////////////////////////////////////////
-
-type FakeAcknowledgement struct{}
-
-func (this *FakeAcknowledgement) Acknowledge() {}
 
 // ///////////////////////////////////////////////////////////////
 
