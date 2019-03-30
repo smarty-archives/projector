@@ -15,7 +15,7 @@ import (
 	"github.com/smartystreets/s3"
 )
 
-type S3DocumentWriter struct {
+type S3Writer struct {
 	logger *logging.Logger
 
 	credentials s3.Option
@@ -23,15 +23,20 @@ type S3DocumentWriter struct {
 	client      HTTPClient
 }
 
-func NewS3DocumentWriter(storage *url.URL, accessKey, secretKey string, client HTTPClient) *S3DocumentWriter {
-	return &S3DocumentWriter{
+// temporary function for compatibility
+func NewDocumentWriter(storage *url.URL, accessKey, secretKey string, client HTTPClient) Writer {
+	return NewS3Writer(storage, accessKey, secretKey, client)
+}
+
+func NewS3Writer(storage *url.URL, accessKey, secretKey string, client HTTPClient) *S3Writer {
+	return &S3Writer{
 		credentials: s3.Credentials(accessKey, secretKey),
 		storage:     s3.StorageAddress(storage),
 		client:      client,
 	}
 }
 
-func (this *S3DocumentWriter) Write(document projector.Document) {
+func (this *S3Writer) Write(document projector.Document) {
 	body := this.serialize(document)
 	checksum := this.md5Checksum(body)
 	request := this.buildRequest(document.Path(), body, checksum)
@@ -39,7 +44,7 @@ func (this *S3DocumentWriter) Write(document projector.Document) {
 	this.handleResponse(response, err)
 }
 
-func (this *S3DocumentWriter) serialize(document projector.Document) []byte {
+func (this *S3Writer) serialize(document projector.Document) []byte {
 	buffer := bytes.NewBuffer([]byte{})
 	gzipWriter, _ := gzip.NewWriterLevel(buffer, gzip.BestCompression)
 	encoder := json.NewEncoder(gzipWriter)
@@ -52,12 +57,12 @@ func (this *S3DocumentWriter) serialize(document projector.Document) []byte {
 	return buffer.Bytes()
 }
 
-func (this *S3DocumentWriter) md5Checksum(body []byte) string {
+func (this *S3Writer) md5Checksum(body []byte) string {
 	sum := md5.Sum(body)
 	return base64.StdEncoding.EncodeToString(sum[:])
 }
 
-func (this *S3DocumentWriter) buildRequest(path string, body []byte, checksum string) *http.Request {
+func (this *S3Writer) buildRequest(path string, body []byte, checksum string) *http.Request {
 	request, err := s3.NewRequest(
 		s3.PUT,
 		this.credentials,
@@ -79,7 +84,7 @@ func (this *S3DocumentWriter) buildRequest(path string, body []byte, checksum st
 // because the inner client should be handling retry indefinitely, until the service
 // response. This is here merely for the sake of completeness, and to bullet-proof
 // the software in case the behavior of the inner client changes in the future.
-func (this *S3DocumentWriter) handleResponse(response *http.Response, err error) {
+func (this *S3Writer) handleResponse(response *http.Response, err error) {
 	if err != nil {
 		this.logger.Panic(err)
 		return

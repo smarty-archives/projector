@@ -12,7 +12,7 @@ import (
 	"github.com/smartystreets/s3"
 )
 
-type S3DocumentReader struct {
+type S3Reader struct {
 	logger *logging.Logger
 
 	storage     s3.Option
@@ -20,15 +20,20 @@ type S3DocumentReader struct {
 	client      HTTPClient
 }
 
-func NewS3DocumentReader(storageAddress *url.URL, accessKey, secretKey string, client HTTPClient) *S3DocumentReader {
-	return &S3DocumentReader{
+// temporary function for compatibility
+func NewDocumentReader(storageAddress *url.URL, accessKey, secretKey string, client HTTPClient) Reader {
+	return NewS3Reader(storageAddress, accessKey, secretKey, client)
+}
+
+func NewS3Reader(storageAddress *url.URL, accessKey, secretKey string, client HTTPClient) *S3Reader {
+	return &S3Reader{
 		storage:     s3.StorageAddress(storageAddress),
 		credentials: s3.Credentials(accessKey, secretKey),
 		client:      client,
 	}
 }
 
-func (this *S3DocumentReader) Read(path string, document interface{}) error {
+func (this *S3Reader) Read(path string, document interface{}) error {
 	request, err := s3.NewRequest(s3.GET, this.credentials, this.storage, s3.Key(path))
 	if err != nil {
 		return fmt.Errorf("Could not create signed request: '%s'", err.Error())
@@ -59,7 +64,7 @@ func (this *S3DocumentReader) Read(path string, document interface{}) error {
 	return nil
 }
 
-func (this *S3DocumentReader) ReadPanic(path string, document interface{}) {
+func (this *S3Reader) ReadPanic(path string, document interface{}) {
 	if err := this.Read(path, document); err != nil {
 		this.logger.Panic(err)
 	}
