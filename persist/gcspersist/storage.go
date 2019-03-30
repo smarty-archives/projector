@@ -1,4 +1,4 @@
-package persist
+package gcspersist
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ import (
 	"github.com/smartystreets/projector"
 )
 
-type GoogleCloudStorage struct {
+type ReadWriter struct {
 	context    context.Context
 	client     *storage.Client
 	bucket     string
@@ -23,8 +23,8 @@ type GoogleCloudStorage struct {
 	logger     *logging.Logger
 }
 
-func NewGoogleCloudStorage(ctx context.Context, client *storage.Client, bucket string, pathPrefix string) *GoogleCloudStorage {
-	return &GoogleCloudStorage{
+func NewReadWriter(ctx context.Context, client *storage.Client, bucket string, pathPrefix string) *ReadWriter {
+	return &ReadWriter{
 		context:    ctx,
 		client:     client,
 		bucket:     bucket,
@@ -32,7 +32,7 @@ func NewGoogleCloudStorage(ctx context.Context, client *storage.Client, bucket s
 	}
 }
 
-func (this *GoogleCloudStorage) Read(filename string, document interface{}) (interface{}, error) {
+func (this *ReadWriter) Read(filename string, document interface{}) (interface{}, error) {
 	filename = path.Join(this.pathPrefix, filename)
 	reader, _ := this.client.
 		Bucket(this.bucket).
@@ -48,7 +48,7 @@ func (this *GoogleCloudStorage) Read(filename string, document interface{}) (int
 
 	return 0, nil
 }
-func (this *GoogleCloudStorage) ReadPanic(path string, document interface{}) interface{} {
+func (this *ReadWriter) ReadPanic(path string, document interface{}) interface{} {
 	if etag, err := this.Read(path, document); err != nil {
 		this.logger.Panic(err)
 		return 0
@@ -57,7 +57,7 @@ func (this *GoogleCloudStorage) ReadPanic(path string, document interface{}) int
 	}
 }
 
-func (this *GoogleCloudStorage) Write(document projector.Document) (interface{}, error) {
+func (this *ReadWriter) Write(document projector.Document) (interface{}, error) {
 	generation := document.Version().(int64)
 	conditions := storage.Conditions{
 		GenerationMatch: generation,

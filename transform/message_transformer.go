@@ -11,10 +11,10 @@ import (
 type MessageTransformer struct {
 	documents []projector.Document
 	waiter    sync.WaitGroup
-	storage   persist.Storage
+	storage   persist.ReadWriter
 }
 
-func NewMessageTransformer(documents []projector.Document, storage persist.Storage) *MessageTransformer {
+func NewMessageTransformer(documents []projector.Document, storage persist.ReadWriter) *MessageTransformer {
 	return &MessageTransformer{documents: documents, storage: storage}
 }
 

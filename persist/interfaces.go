@@ -18,7 +18,7 @@ type Writer interface {
 	Write(projector.Document) (interface{}, error)
 }
 
-type Storage interface {
+type ReadWriter interface {
 	Reader
 	Writer
 }

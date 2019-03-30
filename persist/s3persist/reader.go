@@ -1,4 +1,4 @@
-package persist
+package s3persist
 
 import (
 	"compress/gzip"
@@ -9,31 +9,27 @@ import (
 	"net/url"
 
 	"github.com/smartystreets/logging"
+	"github.com/smartystreets/projector/persist"
 	"github.com/smartystreets/s3"
 )
 
-type S3Reader struct {
+type Reader struct {
 	logger *logging.Logger
 
 	storage     s3.Option
 	credentials s3.Option
-	client      HTTPClient
+	client      persist.HTTPClient
 }
 
-// temporary function for compatibility
-func NewDocumentReader(storageAddress *url.URL, accessKey, secretKey string, client HTTPClient) Reader {
-	return NewS3Reader(storageAddress, accessKey, secretKey, client)
-}
-
-func NewS3Reader(storageAddress *url.URL, accessKey, secretKey string, client HTTPClient) *S3Reader {
-	return &S3Reader{
+func NewReader(storageAddress *url.URL, accessKey, secretKey string, client persist.HTTPClient) *Reader {
+	return &Reader{
 		storage:     s3.StorageAddress(storageAddress),
 		credentials: s3.Credentials(accessKey, secretKey),
 		client:      client,
 	}
 }
 
-func (this *S3Reader) Read(path string, document interface{}) (interface{}, error) {
+func (this *Reader) Read(path string, document interface{}) (interface{}, error) {
 	request, err := s3.NewRequest(s3.GET, this.credentials, this.storage, s3.Key(path))
 	if err != nil {
 		return nil, fmt.Errorf("Could not create signed request: '%s'", err.Error())
@@ -64,7 +60,7 @@ func (this *S3Reader) Read(path string, document interface{}) (interface{}, erro
 	return response.Header.Get("ETag"), nil
 }
 
-func (this *S3Reader) ReadPanic(path string, document interface{}) interface{} {
+func (this *Reader) ReadPanic(path string, document interface{}) interface{} {
 	if etag, err := this.Read(path, document); err != nil {
 		this.logger.Panic(err)
 		return nil

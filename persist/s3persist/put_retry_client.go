@@ -1,4 +1,4 @@
-package persist
+package s3persist
 
 import (
 	"errors"
@@ -9,16 +9,17 @@ import (
 
 	"github.com/smartystreets/clock"
 	"github.com/smartystreets/logging"
+	"github.com/smartystreets/projector/persist"
 )
 
 type PutRetryClient struct {
-	inner   HTTPClient
+	inner   persist.HTTPClient
 	retries int
 	sleeper *clock.Sleeper
 	logger  *logging.Logger
 }
 
-func NewPutRetryClient(inner HTTPClient, retries int) *PutRetryClient {
+func NewPutRetryClient(inner persist.HTTPClient, retries int) *PutRetryClient {
 	return &PutRetryClient{inner: inner, retries: retries}
 }
 
