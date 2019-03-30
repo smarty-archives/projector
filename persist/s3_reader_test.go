@@ -50,51 +50,53 @@ func (this *S3Fixture) TestDocumentNotFound_JSONMarshalNotAttempted() {
 }
 
 func (this *S3Fixture) TestBodyUnreadable() {
-	var BodyUnreadableResponse = &http.Response{StatusCode: 200, Body: newReadErrorHTTPBody()}
-	this.client.response = BodyUnreadableResponse
-	this.So(this.read, should.Panic)
+	var bodyUnreadableResponse = &http.Response{StatusCode: 200, Body: newReadErrorHTTPBody()}
+	this.client.response = bodyUnreadableResponse
+	this.So(func() { this.read() } , should.Panic)
 	this.So(this.document.ID, should.Equal, 0)
-	this.So(BodyUnreadableResponse.Body.(*FakeHTTPResponseBody).closed, should.BeTrue)
+	this.So(bodyUnreadableResponse.Body.(*FakeHTTPResponseBody).closed, should.BeTrue)
 }
 
 func (this *S3Fixture) TestBadJSON() {
-	var BadJSONResponse = &http.Response{StatusCode: 200, Body: newHTTPBody("I am bad JSON.")}
-	this.client.response = BadJSONResponse
-	this.So(this.read, should.Panic)
+	var badJSONResponse = &http.Response{StatusCode: 200, Body: newHTTPBody("I am bad JSON.")}
+	this.client.response = badJSONResponse
+	this.So(func() { this.read() }, should.Panic)
 	this.So(this.document.ID, should.Equal, 0)
-	this.So(BadJSONResponse.Body.(*FakeHTTPResponseBody).closed, should.BeTrue)
+	this.So(badJSONResponse.Body.(*FakeHTTPResponseBody).closed, should.BeTrue)
 }
 
 func (this *S3Fixture) TestValidUncompressedResponse_PopulatesDocument() {
-	var ValidUncompressedResponse = &http.Response{StatusCode: 200, Body: newHTTPBody(`{"ID": 1234}`)}
-	this.client.response = ValidUncompressedResponse
+	var validUncompressedResponse = &http.Response{StatusCode: 200, Body: newHTTPBody(`{"ID": 1234}`)}
+	this.client.response = validUncompressedResponse
 	this.read()
 	this.So(this.client.request.URL.Path, should.Equal, "/document/path")
 	this.So(this.document.ID, should.Equal, 1234)
-	this.So(ValidUncompressedResponse.Body.(*FakeHTTPResponseBody).closed, should.BeTrue)
+	this.So(validUncompressedResponse.Body.(*FakeHTTPResponseBody).closed, should.BeTrue)
 }
 func (this *S3Fixture) TestValidCompressedResponse_PopulatesDocument() {
-	var ValidCompressedResponse = &http.Response{StatusCode: 200, Body: newHTTPBody(`{"ID": 1234}`)}
+	var validCompressedResponse = &http.Response{StatusCode: 200, Body: newHTTPBody(`{"ID": 1234}`)}
 
-	ValidCompressedResponse.Header = make(http.Header)
-	ValidCompressedResponse.Header.Set("Content-Encoding", "gzip")
+	validCompressedResponse.Header = make(http.Header)
+	validCompressedResponse.Header.Set("Content-Encoding", "gzip")
+	validCompressedResponse.Header.Set("Etag", "abc1234")
 
 	targetBuffer := bytes.NewBuffer([]byte{})
 	writer := gzip.NewWriter(targetBuffer)
-	_, _ = io.Copy(writer, ValidCompressedResponse.Body)
+	_, _ = io.Copy(writer, validCompressedResponse.Body)
 	_ = writer.Close()
 
-	ValidCompressedResponse.Body = ioutil.NopCloser(targetBuffer)
+	validCompressedResponse.Body = ioutil.NopCloser(targetBuffer)
 
-	this.client.response = ValidCompressedResponse
-	this.read()
+	this.client.response = validCompressedResponse
+	etag := this.read()
 	this.So(this.document.ID, should.Equal, 1234)
+	this.So(etag, should.Equal, "abc1234")
 }
-func (this *S3Fixture) read() {
-	this.reader.ReadPanic(this.path, this.document)
+func (this *S3Fixture) read() interface{} {
+	return this.reader.ReadPanic(this.path, this.document)
 }
 func (this *S3Fixture) assertPanic(message string) {
-	this.So(this.read, should.Panic)
+	this.So(func() { this.read() }, should.Panic)
 	this.So(this.document.ID, should.Equal, 0)
 }
 

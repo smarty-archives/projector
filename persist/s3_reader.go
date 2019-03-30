@@ -33,22 +33,22 @@ func NewS3Reader(storageAddress *url.URL, accessKey, secretKey string, client HT
 	}
 }
 
-func (this *S3Reader) Read(path string, document interface{}) error {
+func (this *S3Reader) Read(path string, document interface{}) (interface{}, error) {
 	request, err := s3.NewRequest(s3.GET, this.credentials, this.storage, s3.Key(path))
 	if err != nil {
-		return fmt.Errorf("Could not create signed request: '%s'", err.Error())
+		return nil, fmt.Errorf("Could not create signed request: '%s'", err.Error())
 	}
 
 	response, err := this.client.Do(request)
 	if err != nil {
-		return fmt.Errorf("HTTP Client Error: '%s'", err.Error())
+		return nil, fmt.Errorf("HTTP Client Error: '%s'", err.Error())
 	}
 
 	defer func() { _ = response.Body.Close() }()
 
 	if response.StatusCode == http.StatusNotFound {
 		this.logger.Printf("[INFO] Document not found at '%s'\n", path)
-		return nil
+		return nil, nil
 	}
 
 	reader := response.Body.(io.Reader)
@@ -58,14 +58,17 @@ func (this *S3Reader) Read(path string, document interface{}) error {
 
 	decoder := json.NewDecoder(reader)
 	if err := decoder.Decode(document); err != nil {
-		return fmt.Errorf("Document read error: '%s'", err.Error())
+		return nil, fmt.Errorf("Document read error: '%s'", err.Error())
 	}
 
-	return nil
+	return response.Header.Get("Etag"), nil
 }
 
-func (this *S3Reader) ReadPanic(path string, document interface{}) {
-	if err := this.Read(path, document); err != nil {
+func (this *S3Reader) ReadPanic(path string, document interface{}) interface{} {
+	if etag, err := this.Read(path, document); err != nil {
 		this.logger.Panic(err)
+		return nil
+	} else {
+		return etag
 	}
 }
