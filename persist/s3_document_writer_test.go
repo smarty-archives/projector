@@ -17,26 +17,26 @@ import (
 	"github.com/smartystreets/projector"
 )
 
-func TestDocumentWriterFixture(t *testing.T) {
-	gunit.Run(new(DocumentWriterFixture), t)
+func TestS3DocumentWriterFixture(t *testing.T) {
+	gunit.Run(new(S3DocumentWriterFixture), t)
 }
 
-type DocumentWriterFixture struct {
+type S3DocumentWriterFixture struct {
 	*gunit.Fixture
 	client *FakeHTTPClientForWriting
-	writer *DocumentWriter
+	writer *S3DocumentWriter
 }
 
-func (this *DocumentWriterFixture) Setup() {
+func (this *S3DocumentWriterFixture) Setup() {
 	this.client = NewFakeHTTPClientForWriting()
 	address := nu.URLParsed("https://bucket.s3-us-west-1.amazonaws.com/")
-	this.writer = NewDocumentWriter(address, "access", "secret", this.client)
+	this.writer = NewS3DocumentWriter(address, "access", "secret", this.client)
 	this.writer.logger = logging.Capture()
 }
 
 // /////////////////////////////////////////////////////////////////
 
-func (this *DocumentWriterFixture) TestDocumentIsTranslatedToAnHTTPRequest() {
+func (this *S3DocumentWriterFixture) TestDocumentIsTranslatedToAnHTTPRequest() {
 	this.writer.Write(writableDocument)
 	this.So(this.client.received, should.NotBeNil)
 	this.So(this.client.received.URL.Path, should.Equal, writableDocument.Path())
@@ -59,14 +59,14 @@ func decodeBody(body []byte) string {
 
 // /////////////////////////////////////////////////////////////////
 
-func (this *DocumentWriterFixture) TestDocumentWithIncompatibleFieldCausesPanicUponSerialization() {
+func (this *S3DocumentWriterFixture) TestDocumentWithIncompatibleFieldCausesPanicUponSerialization() {
 	action := func() { this.writer.Write(badJSONDocument) }
 	this.So(action, should.PanicWith, "json: unsupported type: chan int")
 }
 
 // /////////////////////////////////////////////////////////////////
 
-func (this *DocumentWriterFixture) TestThatInnerClientFailureCausesPanic() {
+func (this *S3DocumentWriterFixture) TestThatInnerClientFailureCausesPanic() {
 	this.client.err = errors.New("Failure")
 	action := func() { this.writer.Write(writableDocument) }
 	this.So(action, should.PanicWith, this.client.err.Error())
@@ -74,7 +74,7 @@ func (this *DocumentWriterFixture) TestThatInnerClientFailureCausesPanic() {
 
 // /////////////////////////////////////////////////////////////////
 
-func (this *DocumentWriterFixture) TestThatInnerClientUnsuccessfulCausesPanic() {
+func (this *S3DocumentWriterFixture) TestThatInnerClientUnsuccessfulCausesPanic() {
 	this.client.statusCode = http.StatusInternalServerError
 	this.client.statusMessage = "Internal Server Error"
 	action := func() { this.writer.Write(writableDocument) }

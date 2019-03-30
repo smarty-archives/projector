@@ -16,40 +16,40 @@ import (
 	"github.com/smartystreets/nu"
 )
 
-func TestDocumentReaderFixture(t *testing.T) {
-	gunit.Run(new(DocumentReaderFixture), t)
+func TestS3DocumentReaderFixture(t *testing.T) {
+	gunit.Run(new(S3DocumentReaderFixture), t)
 }
 
-type DocumentReaderFixture struct {
+type S3DocumentReaderFixture struct {
 	*gunit.Fixture
 
 	path     string
-	reader   *DocumentReader
+	reader   *S3DocumentReader
 	client   *FakeHTTPGetClient // HTTPClient
 	document *Document
 }
 
-func (this *DocumentReaderFixture) Setup() {
+func (this *S3DocumentReaderFixture) Setup() {
 	this.path = "/document/path"
 	this.client = &FakeHTTPGetClient{}
 	address := nu.URLParsed("https://bucket.s3-us-west-1.amazonaws.com/")
-	this.reader = NewDocumentReader(address, "access", "secret", this.client)
+	this.reader = NewS3DocumentReader(address, "access", "secret", this.client)
 	this.reader.logger = logging.Capture()
 	this.document = &Document{}
 }
 
-func (this *DocumentReaderFixture) TestClientErrorPreventsDocumentReading() {
+func (this *S3DocumentReaderFixture) TestClientErrorPreventsDocumentReading() {
 	this.client.err = errors.New("BOINK!")
 	this.assertPanic("HTTP Client Error: BOINK!")
 }
 
-func (this *DocumentReaderFixture) TestDocumentNotFound_JSONMarshalNotAttempted() {
+func (this *S3DocumentReaderFixture) TestDocumentNotFound_JSONMarshalNotAttempted() {
 	this.client.response = &http.Response{StatusCode: 404, Body: newHTTPBody("Not found")}
 	this.read()
 	this.So(this.document.ID, should.Equal, 0)
 }
 
-func (this *DocumentReaderFixture) TestBodyUnreadable() {
+func (this *S3DocumentReaderFixture) TestBodyUnreadable() {
 	var BodyUnreadableResponse = &http.Response{StatusCode: 200, Body: newReadErrorHTTPBody()}
 	this.client.response = BodyUnreadableResponse
 	this.So(this.read, should.Panic)
@@ -57,7 +57,7 @@ func (this *DocumentReaderFixture) TestBodyUnreadable() {
 	this.So(BodyUnreadableResponse.Body.(*FakeHTTPResponseBody).closed, should.BeTrue)
 }
 
-func (this *DocumentReaderFixture) TestBadJSON() {
+func (this *S3DocumentReaderFixture) TestBadJSON() {
 	var BadJSONResponse = &http.Response{StatusCode: 200, Body: newHTTPBody("I am bad JSON.")}
 	this.client.response = BadJSONResponse
 	this.So(this.read, should.Panic)
@@ -65,7 +65,7 @@ func (this *DocumentReaderFixture) TestBadJSON() {
 	this.So(BadJSONResponse.Body.(*FakeHTTPResponseBody).closed, should.BeTrue)
 }
 
-func (this *DocumentReaderFixture) TestValidUncompressedResponse_PopulatesDocument() {
+func (this *S3DocumentReaderFixture) TestValidUncompressedResponse_PopulatesDocument() {
 	var ValidUncompressedResponse = &http.Response{StatusCode: 200, Body: newHTTPBody(`{"ID": 1234}`)}
 	this.client.response = ValidUncompressedResponse
 	this.read()
@@ -73,7 +73,7 @@ func (this *DocumentReaderFixture) TestValidUncompressedResponse_PopulatesDocume
 	this.So(this.document.ID, should.Equal, 1234)
 	this.So(ValidUncompressedResponse.Body.(*FakeHTTPResponseBody).closed, should.BeTrue)
 }
-func (this *DocumentReaderFixture) TestValidCompressedResponse_PopulatesDocument() {
+func (this *S3DocumentReaderFixture) TestValidCompressedResponse_PopulatesDocument() {
 	var ValidCompressedResponse = &http.Response{StatusCode: 200, Body: newHTTPBody(`{"ID": 1234}`)}
 
 	ValidCompressedResponse.Header = make(http.Header)
@@ -90,10 +90,10 @@ func (this *DocumentReaderFixture) TestValidCompressedResponse_PopulatesDocument
 	this.read()
 	this.So(this.document.ID, should.Equal, 1234)
 }
-func (this *DocumentReaderFixture) read() {
+func (this *S3DocumentReaderFixture) read() {
 	this.reader.ReadPanic(this.path, this.document)
 }
-func (this *DocumentReaderFixture) assertPanic(message string) {
+func (this *S3DocumentReaderFixture) assertPanic(message string) {
 	this.So(this.read, should.Panic)
 	this.So(this.document.ID, should.Equal, 0)
 }
