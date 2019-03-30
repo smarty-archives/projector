@@ -52,7 +52,7 @@ func (this *S3Fixture) TestDocumentNotFound_JSONMarshalNotAttempted() {
 func (this *S3Fixture) TestBodyUnreadable() {
 	var bodyUnreadableResponse = &http.Response{StatusCode: 200, Body: newReadErrorHTTPBody()}
 	this.client.response = bodyUnreadableResponse
-	this.So(func() { this.read() } , should.Panic)
+	this.So(func() { this.read() }, should.Panic)
 	this.So(this.document.ID, should.Equal, 0)
 	this.So(bodyUnreadableResponse.Body.(*FakeHTTPResponseBody).closed, should.BeTrue)
 }

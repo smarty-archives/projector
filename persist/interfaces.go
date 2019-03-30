@@ -17,6 +17,11 @@ type Writer interface {
 	Write(projector.Document) (interface{}, error)
 }
 
+type Storage interface {
+	Reader
+	Writer
+}
+
 type HTTPClient interface {
 	Do(*http.Request) (*http.Response, error)
 }

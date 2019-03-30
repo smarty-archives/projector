@@ -6,7 +6,7 @@ type Document interface {
 	Lapse(now time.Time) (next Document)
 	Apply(message interface{}) bool
 	Path() string
-	
+
 	Reset()
 	SetVersion(interface{})
 	Version() interface{}
