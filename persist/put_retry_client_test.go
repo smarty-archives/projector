@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	retries     int = 5
-	maxAttempts int = retries + 1
+	retries     = 5
+	maxAttempts = retries + 1
 )
 
 func TestPutRetryClientFixture(t *testing.T) {
@@ -40,7 +40,7 @@ func (this *PutRetryClientFixture) Setup() {
 	this.retryClient.logger = logging.Capture()
 }
 
-////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////
 
 func (this *PutRetryClientFixture) TestClientSucceedsOnFirstTry() {
 	request := buildRequestFromPath("/")
@@ -48,7 +48,7 @@ func (this *PutRetryClientFixture) TestClientSucceedsOnFirstTry() {
 	this.assertResponseAndNoError()
 }
 
-////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////
 
 func (this *PutRetryClientFixture) TestClientFailsAtFirst_ThenSucceeds() {
 	request := buildRequestFromPath("/fail-first")
@@ -60,7 +60,7 @@ func (this *PutRetryClientFixture) TestClientFailsAtFirst_ThenSucceeds() {
 	this.assertAllAttemptsUsed()
 }
 
-////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////
 
 func (this *PutRetryClientFixture) TestClientNeverSucceeds() {
 	request := buildRequestFromPath("/fail-always")
@@ -73,7 +73,7 @@ func (this *PutRetryClientFixture) TestClientNeverSucceeds() {
 	this.assertWaitingPeriodBetweenAttempts()
 }
 
-////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////
 
 func (this *PutRetryClientFixture) TestClientRetriesBadStatus_ThenSucceeds() {
 	request := buildRequestFromPath("/bad-status")
@@ -85,7 +85,7 @@ func (this *PutRetryClientFixture) TestClientRetriesBadStatus_ThenSucceeds() {
 	this.assertAllAttemptsUsed()
 }
 
-////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////
 
 func buildRequestFromPath(path string) *http.Request {
 	request, _ := http.NewRequest("GET", path, nil)
@@ -118,25 +118,25 @@ func (this *PutRetryClientFixture) assertPayloadIsIdenticalOnEveryRequest() {
 
 const bodyPayload = "Hello, World!"
 
-////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////
 
 type FakeHTTPClientForPutRetry struct {
 	calls  int
 	bodies [][]byte
 
-	putRetry_NotFoundResponse *http.Response
+	putRetryNotFoundResponse *http.Response
 }
 
 func newFakeHTTPClientForPutRetry() *FakeHTTPClientForPutRetry {
 	return &FakeHTTPClientForPutRetry{
-		putRetry_NotFoundResponse: &http.Response{StatusCode: 404, Body: newFakeBody("Not Found")},
+		putRetryNotFoundResponse: &http.Response{StatusCode: 404, Body: newFakeBody("Not Found")},
 	}
 }
 
 func (this *FakeHTTPClientForPutRetry) Do(request *http.Request) (*http.Response, error) {
 	body, _ := ioutil.ReadAll(request.Body)
 	this.bodies = append(this.bodies, body)
-	request.Body.Close()
+	_ = request.Body.Close()
 
 	this.calls++
 	if request.URL.Path == "/fail-first" && this.calls < maxAttempts {
@@ -144,13 +144,13 @@ func (this *FakeHTTPClientForPutRetry) Do(request *http.Request) (*http.Response
 	} else if request.URL.Path == "/fail-always" {
 		return nil, errors.New("GOPHERS!")
 	} else if request.URL.Path == "/bad-status" && this.calls < maxAttempts {
-		return this.putRetry_NotFoundResponse, nil
+		return this.putRetryNotFoundResponse, nil
 	} else {
 		return &http.Response{StatusCode: 200}, nil
 	}
 }
 
-//////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////
 
 func newFakeBody(message string) io.ReadCloser {
 	return &ClosingReader{Reader: strings.NewReader(message)}
@@ -166,7 +166,7 @@ func (this *ClosingReader) Close() error {
 	return nil
 }
 
-//////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////
 
 type nopCloser struct{ io.ReadSeeker }
 

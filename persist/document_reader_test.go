@@ -81,8 +81,8 @@ func (this *DocumentReaderFixture) TestValidCompressedResponse_PopulatesDocument
 
 	targetBuffer := bytes.NewBuffer([]byte{})
 	writer := gzip.NewWriter(targetBuffer)
-	io.Copy(writer, ValidCompressedResponse.Body)
-	writer.Close()
+	_, _ = io.Copy(writer, ValidCompressedResponse.Body)
+	_ = writer.Close()
 
 	ValidCompressedResponse.Body = ioutil.NopCloser(targetBuffer)
 
@@ -98,7 +98,7 @@ func (this *DocumentReaderFixture) assertPanic(message string) {
 	this.So(this.document.ID, should.Equal, 0)
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////////////////////////
 
 type FakeHTTPGetClient struct {
 	err      error
@@ -111,11 +111,11 @@ func (this *FakeHTTPGetClient) Do(request *http.Request) (*http.Response, error)
 	return this.response, this.err
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////////////////
 
 type Document struct{ ID int }
 
-////////////////////////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////////////////////////
 
 func newHTTPBody(message string) io.ReadCloser {
 	return &FakeHTTPResponseBody{Reader: strings.NewReader(message)}

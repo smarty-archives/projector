@@ -31,7 +31,7 @@ func (this *GetRetryClientFixture) Setup() {
 	this.retryClient.logger = logging.Capture()
 }
 
-/////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////
 
 func (this *GetRetryClientFixture) TestClientFindsDocumentOnFirstTry() {
 	this.fakeClient.statusCode = http.StatusOK
@@ -43,7 +43,7 @@ func (this *GetRetryClientFixture) TestClientFindsDocumentOnFirstTry() {
 	this.So(this.err, should.BeNil)
 }
 
-/////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////
 
 func (this *GetRetryClientFixture) TestClientFindsNODocumentOnFirstTry() {
 	this.fakeClient.statusCode = http.StatusNotFound
@@ -55,7 +55,7 @@ func (this *GetRetryClientFixture) TestClientFindsNODocumentOnFirstTry() {
 	this.So(this.err, should.BeNil)
 }
 
-/////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////
 
 func (this *GetRetryClientFixture) TestClientFailsAtFirst_ThenSucceeds() {
 	this.fakeClient.statusCode = http.StatusOK
@@ -67,7 +67,7 @@ func (this *GetRetryClientFixture) TestClientFailsAtFirst_ThenSucceeds() {
 	this.So(this.err, should.BeNil)
 }
 
-/////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////
 
 func (this *GetRetryClientFixture) TestClientFailsAtFirst_ThenFindsNoDocument() {
 	this.fakeClient.statusCode = http.StatusNotFound
@@ -79,7 +79,7 @@ func (this *GetRetryClientFixture) TestClientFailsAtFirst_ThenFindsNoDocument() 
 	this.So(this.err, should.BeNil)
 }
 
-/////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////
 
 func (this *GetRetryClientFixture) TestClientNeverSucceeds() {
 	request, _ := http.NewRequest("GET", "/fail-always", nil)
@@ -90,7 +90,7 @@ func (this *GetRetryClientFixture) TestClientNeverSucceeds() {
 	this.So(len(this.retryClient.sleeper.Naps), should.Equal, maxAttempts)
 }
 
-/////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////
 
 func (this *GetRetryClientFixture) TestClientBadStatusCodeAtFirst_ThenFindsDocument() {
 	this.fakeClient.statusCode = http.StatusOK
@@ -103,7 +103,7 @@ func (this *GetRetryClientFixture) TestClientBadStatusCodeAtFirst_ThenFindsDocum
 	this.So(this.fakeClient.calls, should.Equal, maxAttempts)
 }
 
-/////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////
 
 type FakeHTTPClientForGetRetry struct {
 	calls      int
@@ -123,4 +123,4 @@ func (this *FakeHTTPClientForGetRetry) Do(request *http.Request) (*http.Response
 	}
 }
 
-////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////

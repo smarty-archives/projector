@@ -31,7 +31,7 @@ func (this *MessageTransformerFixture) Setup() {
 	this.now = clock.UTCNow()
 }
 
-////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////
 
 func (this *MessageTransformerFixture) TestLapseDocumentOverwritesOriginal() {
 	this.transformer.TransformAllDocuments("My Message", this.now)
@@ -39,7 +39,7 @@ func (this *MessageTransformerFixture) TestLapseDocumentOverwritesOriginal() {
 	this.So(this.transformer.documents[0].Path(), should.Equal, "1")
 }
 
-////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////
 
 func (this *MessageTransformerFixture) TestMessageHandledByDocuments() {
 	this.transformer.TransformAllDocuments("My Message", this.now)
@@ -48,7 +48,7 @@ func (this *MessageTransformerFixture) TestMessageHandledByDocuments() {
 	this.So(fakeDocument.handledMessage, should.Equal, "My Message")
 }
 
-////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////
 
 func (this *MessageTransformerFixture) TestNilMessageSkipped() {
 	this.transformer.TransformAllDocuments(nil, this.now)
@@ -57,7 +57,7 @@ func (this *MessageTransformerFixture) TestNilMessageSkipped() {
 	this.So(fakeDocument.handled, should.Equal, 0)
 }
 
-////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////
 
 func (this *MessageTransformerFixture) TestCollectReturnsClonedDocuments() {
 	transformer := NewMessageTransformer(nil, this.cloner)
@@ -69,7 +69,7 @@ func (this *MessageTransformerFixture) TestCollectReturnsClonedDocuments() {
 	}
 }
 
-////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////
 
 func (this *MessageTransformerFixture) TestMultipleCollectsOnlyReturnsOnce() {
 	transformer := NewMessageTransformer(nil, this.cloner)
@@ -79,7 +79,7 @@ func (this *MessageTransformerFixture) TestMultipleCollectsOnlyReturnsOnce() {
 	this.So(transformer.Collect(), should.BeEmpty)
 }
 
-////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////
 
 type FakeDocument struct {
 	depth          int
@@ -101,7 +101,7 @@ func (this *FakeDocument) Apply(message interface{}) bool {
 	return true
 }
 
-////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////
 
 type FakeCloner struct {
 }

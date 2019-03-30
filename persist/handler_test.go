@@ -52,7 +52,7 @@ func (this *HandlerFixture) assertDocumentNotWritten(path string) {
 	this.So(path, should.NotBeIn, this.writer.written)
 }
 
-//////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////
 
 func (this *HandlerFixture) TestAllDocumentsWritten() {
 	this.sendAndClose(newMessage(0, 0))
@@ -62,7 +62,7 @@ func (this *HandlerFixture) TestAllDocumentsWritten() {
 	}
 }
 
-//////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////
 
 func (this *HandlerFixture) TestAllDocumentsWrittenInAConsolidatedBatch() {
 	finalAck := 100
@@ -84,7 +84,7 @@ func (this *HandlerFixture) assertOutputChannelClosed() {
 	}
 }
 
-//////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////
 
 func (this *HandlerFixture) TestEachSentBatchIsSeparateFromThePreviousOne() {
 	go this.handler.Listen()
@@ -104,7 +104,7 @@ func (this *HandlerFixture) TestEachSentBatchIsSeparateFromThePreviousOne() {
 	this.assertDocumentsWritten("1", "2")
 }
 
-//////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////
 
 func newMessage(documentIndex, ack int) projector.DocumentMessage {
 	return projector.DocumentMessage{
@@ -116,7 +116,7 @@ func newMessage(documentIndex, ack int) projector.DocumentMessage {
 	}
 }
 
-//////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////
 
 type FakeWriter struct {
 	mutex   *sync.Mutex
@@ -133,7 +133,7 @@ func (this *FakeWriter) Write(document projector.Document) {
 	this.written = append(this.written, document.Path())
 }
 
-/////////////////////////////////////
+// ///////////////////////////////////
 
 type FakeDocument struct{ id string }
 
@@ -142,10 +142,10 @@ func (this *FakeDocument) Path() string                       { return this.id }
 func (this *FakeDocument) Lapse(time.Time) projector.Document { panic("NOT IMPLEMENTED") }
 func (this *FakeDocument) Apply(interface{}) bool             { panic("NOT IMPLEMENTED") }
 
-/////////////////////////
+// ///////////////////////
 
 type FakeReceipt struct{ id int }
 
 func (this *FakeReceipt) Acknowledge() {}
 
-/////////////////////////////////////////
+// ///////////////////////////////////////

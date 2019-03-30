@@ -34,7 +34,7 @@ func (this *DocumentWriterFixture) Setup() {
 	this.writer.logger = logging.Capture()
 }
 
-///////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////
 
 func (this *DocumentWriterFixture) TestDocumentIsTranslatedToAnHTTPRequest() {
 	this.writer.Write(writableDocument)
@@ -57,14 +57,14 @@ func decodeBody(body []byte) string {
 	return strings.TrimSpace(string(decoded))
 }
 
-///////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////
 
 func (this *DocumentWriterFixture) TestDocumentWithIncompatibleFieldCausesPanicUponSerialization() {
 	action := func() { this.writer.Write(badJSONDocument) }
 	this.So(action, should.PanicWith, "json: unsupported type: chan int")
 }
 
-///////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////
 
 func (this *DocumentWriterFixture) TestThatInnerClientFailureCausesPanic() {
 	this.client.err = errors.New("Failure")
@@ -72,7 +72,7 @@ func (this *DocumentWriterFixture) TestThatInnerClientFailureCausesPanic() {
 	this.So(action, should.PanicWith, this.client.err.Error())
 }
 
-///////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////
 
 func (this *DocumentWriterFixture) TestThatInnerClientUnsuccessfulCausesPanic() {
 	this.client.statusCode = http.StatusInternalServerError
@@ -81,7 +81,7 @@ func (this *DocumentWriterFixture) TestThatInnerClientUnsuccessfulCausesPanic() 
 	this.So(action, should.PanicWith, "Non-200 HTTP Status Code: 500 Internal Server Error")
 }
 
-///////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////
 
 type FakeHTTPClientForWriting struct {
 	received      *http.Request
@@ -106,14 +106,14 @@ func (this *FakeHTTPClientForWriting) Do(request *http.Request) (*http.Response,
 	}, this.err
 }
 
-/////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////
 
 type FakeBody struct{ closed int }
 
 func (this *FakeBody) Read([]byte) (int, error) { return 0, nil }
 func (this *FakeBody) Close() error             { this.closed++; return nil }
 
-/////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////
 
 var writableDocument = &DocumentForWriting{Message: "Hello, World!"}
 
@@ -123,7 +123,7 @@ func (this *DocumentForWriting) Lapse(now time.Time) (next projector.Document) {
 func (this *DocumentForWriting) Apply(message interface{}) bool                { return false }
 func (this *DocumentForWriting) Path() string                                  { return "/this/is/the/path.json" }
 
-/////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////
 
 var badJSONDocument = &BadJSONDocumentForWriting{}
 
@@ -134,7 +134,7 @@ func (this *BadJSONDocumentForWriting) Lapse(now time.Time) (next projector.Docu
 func (this *BadJSONDocumentForWriting) Apply(message interface{}) bool                { return false }
 func (this *BadJSONDocumentForWriting) Path() string                                  { return "" }
 
-/////////////////////////////////////////////////////////////////
+// ///////////////////////////////////////////////////////////////
 
 var badPathDocument = &BadPathDocumentForWriting{path: "%%%%%%%%"}
 

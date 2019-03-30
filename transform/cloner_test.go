@@ -43,11 +43,11 @@ func (this *ClonerFixture) Clone() {
 
 func (this *ClonerFixture) FillBufferWithGarbage() {
 	for x := 0; x < 1024; x++ {
-		fmt.Fprint(this.buffer, x)
+		_, _ = fmt.Fprint(this.buffer, x)
 	}
 }
 
-//////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////
 
 func (this *ClonerFixture) TestClonedDocumentResembledOriginalButIsNOTTheOriginal() {
 	this.Clone()
@@ -55,14 +55,14 @@ func (this *ClonerFixture) TestClonedDocumentResembledOriginalButIsNOTTheOrigina
 	this.So(this.clone, should.NotPointTo, this.original)
 }
 
-//////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////
 
 func (this *ClonerFixture) TestClonePanicsIfGOBEncodingFails() {
 	this.original = NewUncloneableReport(42)
 	this.So(this.Clone, should.Panic)
 }
 
-//////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////
 
 func (this *ClonerFixture) TestClonePanicsIfGOBDecodingFails() {
 	this.buffer = &EOFReadBuffer{Buffer: &bytes.Buffer{}}
@@ -70,7 +70,7 @@ func (this *ClonerFixture) TestClonePanicsIfGOBDecodingFails() {
 	this.So(this.Clone, should.Panic)
 }
 
-//////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////
 
 func (this *ClonerFixture) TestCloneShouldOperateOnAnEmptyBufferEachTime() {
 	for x := 0; x < 10; x++ {
@@ -79,7 +79,7 @@ func (this *ClonerFixture) TestCloneShouldOperateOnAnEmptyBufferEachTime() {
 	}
 }
 
-//////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////
 
 type CloneableReport struct{ ID int }
 
@@ -88,7 +88,7 @@ func (this *CloneableReport) Path() string                                  { pa
 func (this *CloneableReport) Apply(message interface{}) bool                { panic("NOT IMPLEMENTED") }
 func (this *CloneableReport) Lapse(now time.Time) (next projector.Document) { panic("NOT IMPLEMENTED") }
 
-//////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////
 
 // This type has no exported fields, which means it cannot be encoded by the gob.Encoder.
 type UncloneableReport struct{ id int }
@@ -100,11 +100,11 @@ func (this *UncloneableReport) Lapse(now time.Time) (next projector.Document) {
 	panic("NOT IMPLEMENTED")
 }
 
-///////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////
 
 type EOFReadBuffer struct{ *bytes.Buffer }
 
 // Read only returns io.EOF so that we can expose an error condition in the gob.Decoder.
 func (this *EOFReadBuffer) Read(p []byte) (n int, err error) { return 0, io.EOF }
 
-///////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////
