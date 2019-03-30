@@ -35,7 +35,7 @@ func (this *MessageTransformer) TransformAllDocuments(message interface{}, now t
 }
 
 func (this *MessageTransformer) Collect() []projector.Document {
-	docs := []projector.Document{}
+	var docs []projector.Document
 
 	for key, doc := range this.changed {
 		delete(this.changed, key)

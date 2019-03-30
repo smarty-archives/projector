@@ -54,7 +54,7 @@ func newRetryBuffer(body io.ReadCloser) *retryBuffer {
 	return &retryBuffer{body.(io.ReadSeeker)}
 }
 func (this *retryBuffer) Close() error {
-	this.Seek(0, 0) // seeks to the beginning (to allow retry) when the buffer is "Closed"
+	_, _ = this.Seek(0, 0) // seeks to the beginning (to allow retry) when the buffer is "Closed"
 	return nil
 }
 

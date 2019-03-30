@@ -41,14 +41,14 @@ func (this *DocumentWriter) Write(document projector.Document) {
 
 func (this *DocumentWriter) serialize(document projector.Document) []byte {
 	buffer := bytes.NewBuffer([]byte{})
-	gzipper, _ := gzip.NewWriterLevel(buffer, gzip.BestCompression)
-	encoder := json.NewEncoder(gzipper)
+	gzipWriter, _ := gzip.NewWriterLevel(buffer, gzip.BestCompression)
+	encoder := json.NewEncoder(gzipWriter)
 
 	if err := encoder.Encode(document); err != nil {
 		this.logger.Panic(err)
 	}
 
-	gzipper.Close()
+	_ = gzipWriter.Close()
 	return buffer.Bytes()
 }
 
@@ -85,7 +85,7 @@ func (this *DocumentWriter) handleResponse(response *http.Response, err error) {
 		return
 	}
 
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 
 	if response.StatusCode != http.StatusOK {
 		this.logger.Panic(fmt.Errorf("Non-200 HTTP Status Code: %d %s", response.StatusCode, response.Status))

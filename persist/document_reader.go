@@ -39,7 +39,7 @@ func (this *DocumentReader) Read(path string, document interface{}) error {
 		return fmt.Errorf("HTTP Client Error: '%s'", err.Error())
 	}
 
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 
 	if response.StatusCode == http.StatusNotFound {
 		this.logger.Printf("[INFO] Document not found at '%s'\n", path)
