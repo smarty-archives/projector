@@ -27,4 +27,4 @@ type HTTPClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
-var ConcurrencyError = errors.New("the document has been updated by another process")
+var ErrConcurrentWrite = errors.New("the document has been updated by another process")

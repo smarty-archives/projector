@@ -9,10 +9,12 @@ import (
 	"fmt"
 	"io"
 	"path"
+	"strings"
 
 	"cloud.google.com/go/storage"
 	"github.com/smartystreets/logging"
 	"github.com/smartystreets/projector"
+	"github.com/smartystreets/projector/persist"
 )
 
 type ReadWriter struct {
@@ -81,12 +83,11 @@ func (this *ReadWriter) Write(document projector.Document) (interface{}, error) 
 	}
 
 	if err := writer.Close(); err != nil {
-		return 0, err
+		return 0, wrapError(err)
 	}
 
 	return writer.Attrs().Generation, nil
 }
-
 func serialize(document projector.Document) *bytes.Buffer {
 	buffer := bytes.NewBuffer([]byte{})
 	gzipWriter, _ := gzip.NewWriterLevel(buffer, gzip.BestCompression)
@@ -103,4 +104,12 @@ func serialize(document projector.Document) *bytes.Buffer {
 func md5Checksum(body []byte) []byte {
 	sum := md5.Sum(body)
 	return sum[:]
+}
+func wrapError(err error) error {
+	message := err.Error()
+	if strings.Contains(message, "412") && strings.Contains(message, "Precondition Failed") {
+		return persist.ErrConcurrentWrite
+	} else {
+		return err
+	}
 }
