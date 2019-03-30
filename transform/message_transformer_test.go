@@ -75,3 +75,6 @@ func (this *FakeDocument) Apply(message interface{}) bool {
 	this.appliedMessages = append(this.appliedMessages, message)
 	return true
 }
+func (this *FakeDocument) Reset()                 {}
+func (this *FakeDocument) SetVersion(interface{}) {}
+func (this *FakeDocument) Version() interface{}   { return "etag" }

@@ -112,22 +112,15 @@ func (this *FakeTransformer) TransformAllDocuments(now time.Time, messages ...in
 	}
 }
 
-var modifiedDocuments = []projector.Document{
-	&fakeDocument{path: "a"},
-	&fakeDocument{path: "b"},
-	&fakeDocument{path: "c"},
-}
-
-func (this *FakeTransformer) Modified() []projector.Document {
-	return modifiedDocuments
-}
-
 // ///////////////////////////////////////////////////////////////
 
 type fakeDocument struct{ path string }
 
 func (this *fakeDocument) Path() string                                  { return this.path }
 func (this *fakeDocument) Lapse(now time.Time) (next projector.Document) { return this }
+func (this *fakeDocument) Reset()                                        {}
 func (this *fakeDocument) Apply(message interface{}) bool                { return false }
+func (this *fakeDocument) SetVersion(interface{})                        {}
+func (this *fakeDocument) Version() interface{}                          { return "etag" }
 
 // ///////////////////////////////////////////////////////////////

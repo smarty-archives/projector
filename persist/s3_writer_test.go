@@ -37,7 +37,7 @@ func (this *S3WriterFixture) Setup() {
 // /////////////////////////////////////////////////////////////////
 
 func (this *S3WriterFixture) TestDocumentIsTranslatedToAnHTTPRequest() {
-	this.writer.Write(writableDocument)
+	_, _ = this.writer.Write(writableDocument)
 	this.So(this.client.received, should.NotBeNil)
 	this.So(this.client.received.URL.Path, should.Equal, writableDocument.Path())
 	this.So(this.client.received.Method, should.Equal, "PUT")
@@ -60,7 +60,7 @@ func decodeBody(body []byte) string {
 // /////////////////////////////////////////////////////////////////
 
 func (this *S3WriterFixture) TestDocumentWithIncompatibleFieldCausesPanicUponSerialization() {
-	action := func() { this.writer.Write(badJSONDocument) }
+	action := func() { _, _ = this.writer.Write(badJSONDocument) }
 	this.So(action, should.PanicWith, "json: unsupported type: chan int")
 }
 
@@ -68,7 +68,7 @@ func (this *S3WriterFixture) TestDocumentWithIncompatibleFieldCausesPanicUponSer
 
 func (this *S3WriterFixture) TestThatInnerClientFailureCausesPanic() {
 	this.client.err = errors.New("Failure")
-	action := func() { this.writer.Write(writableDocument) }
+	action := func() { _, _ = this.writer.Write(writableDocument) }
 	this.So(action, should.PanicWith, this.client.err.Error())
 }
 
@@ -77,7 +77,7 @@ func (this *S3WriterFixture) TestThatInnerClientFailureCausesPanic() {
 func (this *S3WriterFixture) TestThatInnerClientUnsuccessfulCausesPanic() {
 	this.client.statusCode = http.StatusInternalServerError
 	this.client.statusMessage = "Internal Server Error"
-	action := func() { this.writer.Write(writableDocument) }
+	action := func() { _, _ = this.writer.Write(writableDocument) }
 	this.So(action, should.PanicWith, "Non-200 HTTP Status Code: 500 Internal Server Error")
 }
 
@@ -122,6 +122,9 @@ type DocumentForWriting struct{ Message string }
 func (this *DocumentForWriting) Lapse(now time.Time) (next projector.Document) { return this }
 func (this *DocumentForWriting) Apply(message interface{}) bool                { return false }
 func (this *DocumentForWriting) Path() string                                  { return "/this/is/the/path.json" }
+func (this *DocumentForWriting) Reset()                                        {}
+func (this *DocumentForWriting) SetVersion(interface{})                        {}
+func (this *DocumentForWriting) Version() interface{}                          { return "etag" }
 
 // ///////////////////////////////////////////////////////////////
 
@@ -133,13 +136,6 @@ type BadJSONDocumentForWriting struct{ Stuff chan int }
 func (this *BadJSONDocumentForWriting) Lapse(now time.Time) (next projector.Document) { return this }
 func (this *BadJSONDocumentForWriting) Apply(message interface{}) bool                { return false }
 func (this *BadJSONDocumentForWriting) Path() string                                  { return "" }
-
-// ///////////////////////////////////////////////////////////////
-
-var badPathDocument = &BadPathDocumentForWriting{path: "%%%%%%%%"}
-
-type BadPathDocumentForWriting struct{ path string }
-
-func (this *BadPathDocumentForWriting) Lapse(now time.Time) (next projector.Document) { return this }
-func (this *BadPathDocumentForWriting) Apply(message interface{}) bool                { return false }
-func (this *BadPathDocumentForWriting) Path() string                                  { return this.path }
+func (this *BadJSONDocumentForWriting) Reset()                                        {}
+func (this *BadJSONDocumentForWriting) SetVersion(interface{})                        {}
+func (this *BadJSONDocumentForWriting) Version() interface{}                          { return "etag" }
