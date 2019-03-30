@@ -32,7 +32,12 @@ func (this *MessageTransformer) transformAllDocuments(now time.Time, messages []
 func (this *MessageTransformer) applyAndSave(index int, now time.Time, messages []interface{}) {
 	defer this.waiter.Done()
 	this.documents[index] = this.documents[index].Lapse(now)
-	for this.apply(index, now, messages) && !this.save(index) {
+	for {
+		if !this.apply(index, now, messages) {
+			break // messages don't apply, we're done
+		} else if this.save(index) {
+			break // the document didn't save, re-apply the messages
+		}
 	}
 }
 func (this *MessageTransformer) apply(index int, now time.Time, messages []interface{}) (modified bool) {
