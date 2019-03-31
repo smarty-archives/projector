@@ -35,14 +35,9 @@ func NewReadWriter(ctx context.Context, client *storage.Client, bucket string, p
 }
 
 func (this *ReadWriter) Read(filename string, document projector.Document) (interface{}, error) {
-	filename = path.Join(this.pathPrefix, filename)
-	for strings.HasPrefix("/", filename) {
-		filename = filename[1:]
-	}
-
 	reader, err := this.client.
 		Bucket(this.bucket).
-		Object(filename).
+		Object(this.normalizeFilename(filename)).
 		NewReader(this.context)
 
 	if storage.ErrObjectNotExist == err {
@@ -87,7 +82,7 @@ func (this *ReadWriter) Write(document projector.Document) (interface{}, error) 
 	filename := path.Join(this.pathPrefix, document.Path())
 	writer := this.client.
 		Bucket(this.bucket).
-		Object(filename).
+		Object(this.normalizeFilename(filename)).
 		If(conditions).
 		NewWriter(this.context)
 
@@ -108,6 +103,14 @@ func (this *ReadWriter) Write(document projector.Document) (interface{}, error) 
 	document.SetVersion(generation)
 	return generation, nil
 }
+func (this *ReadWriter) normalizeFilename(value string) string {
+	value = path.Join(this.pathPrefix, value)
+	for strings.HasPrefix(value, "/") {
+		value = value[1:]
+	}
+	return value
+}
+
 func serialize(document projector.Document) *bytes.Buffer {
 	buffer := bytes.NewBuffer([]byte{})
 	gzipWriter, _ := gzip.NewWriterLevel(buffer, gzip.BestCompression)
