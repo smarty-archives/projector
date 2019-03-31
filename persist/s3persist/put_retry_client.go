@@ -24,6 +24,10 @@ func NewPutRetryClient(inner persist.HTTPClient, retries int) *PutRetryClient {
 }
 
 func (this *PutRetryClient) Do(request *http.Request) (*http.Response, error) {
+	if request.Method != "PUT" {
+		return this.inner.Do(request)
+	}
+
 	request.Body = newRetryBuffer(request.Body)
 
 	for current := 0; current <= this.retries; current++ {

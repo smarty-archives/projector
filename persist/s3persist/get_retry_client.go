@@ -27,6 +27,10 @@ func NewGetRetryClient(inner persist.HTTPClient, retries int) *GetRetryClient {
 }
 
 func (this *GetRetryClient) Do(request *http.Request) (*http.Response, error) {
+	if request.Method != "GET" {
+		return this.inner.Do(request)
+	}
+
 	for current := 0; current <= this.retries; current++ {
 		response, err := this.inner.Do(request)
 		if err == nil && response.StatusCode == http.StatusOK {
