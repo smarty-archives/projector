@@ -45,11 +45,11 @@ func (this *HandlerFixture) TestAllDeliveriesHandled() {
 	go this.handler.Listen()
 	this.input <- this.inputs[0]
 	this.input <- this.inputs[1]
-	time.Sleep(time.Millisecond*10)
+	time.Sleep(time.Millisecond * 10)
 	this.input <- this.inputs[2]
 	this.input <- this.inputs[3]
 	close(this.input)
-	time.Sleep(time.Millisecond*10)
+	time.Sleep(time.Millisecond * 10)
 
 	this.So(this.transformer.received, should.HaveLength, len(this.inputs))
 	for _, delivery := range this.inputs {

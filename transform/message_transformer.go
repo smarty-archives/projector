@@ -54,10 +54,8 @@ func (this *MessageTransformer) save(index int) bool {
 		document.SetVersion(etag)
 		return true
 	} else {
-		path := document.Path()
 		document.Reset()
-		etag, _ = this.storage.Read(path, document)
-		document.SetVersion(etag)
+		_, _ = this.storage.Read(document.Path(), document)
 		return false
 	}
 }

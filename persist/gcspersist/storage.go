@@ -34,23 +34,37 @@ func NewReadWriter(ctx context.Context, client *storage.Client, bucket string, p
 	}
 }
 
-func (this *ReadWriter) Read(filename string, document interface{}) (interface{}, error) {
+func (this *ReadWriter) Read(filename string, document projector.Document) (interface{}, error) {
 	filename = path.Join(this.pathPrefix, filename)
-	reader, _ := this.client.
+	for strings.HasPrefix("/", filename) {
+		filename = filename[1:]
+	}
+
+	reader, err := this.client.
 		Bucket(this.bucket).
 		Object(filename).
 		NewReader(this.context)
 
+	if storage.ErrObjectNotExist == err {
+		return 0, nil
+	}
+
 	defer func() { _ = reader.Close() }()
+
+	if err != nil {
+		return 0, err
+	}
 
 	decoder := json.NewDecoder(reader)
 	if err := decoder.Decode(document); err != nil {
 		return 0, fmt.Errorf("document read error: '%s'", err.Error())
 	}
 
-	return 0, nil
+	generation := reader.Attrs.Generation
+	document.SetVersion(generation)
+	return generation, nil
 }
-func (this *ReadWriter) ReadPanic(path string, document interface{}) interface{} {
+func (this *ReadWriter) ReadPanic(path string, document projector.Document) interface{} {
 	if etag, err := this.Read(path, document); err != nil {
 		this.logger.Panic(err)
 		return 0
@@ -60,7 +74,11 @@ func (this *ReadWriter) ReadPanic(path string, document interface{}) interface{}
 }
 
 func (this *ReadWriter) Write(document projector.Document) (interface{}, error) {
-	generation := document.Version().(int64)
+	var generation int64
+	if value, ok := document.Version().(int64); ok {
+		generation = value
+	}
+
 	conditions := storage.Conditions{
 		GenerationMatch: generation,
 		DoesNotExist:    generation == 0,
@@ -86,7 +104,9 @@ func (this *ReadWriter) Write(document projector.Document) (interface{}, error) 
 		return 0, wrapError(err)
 	}
 
-	return writer.Attrs().Generation, nil
+	generation = writer.Attrs().Generation
+	document.SetVersion(generation)
+	return generation, nil
 }
 func serialize(document projector.Document) *bytes.Buffer {
 	buffer := bytes.NewBuffer([]byte{})

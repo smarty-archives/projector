@@ -9,6 +9,7 @@ import (
 	"net/url"
 
 	"github.com/smartystreets/logging"
+	"github.com/smartystreets/projector"
 	"github.com/smartystreets/projector/persist"
 	"github.com/smartystreets/s3"
 )
@@ -29,7 +30,7 @@ func NewReader(storageAddress *url.URL, accessKey, secretKey string, client pers
 	}
 }
 
-func (this *Reader) Read(path string, document interface{}) (interface{}, error) {
+func (this *Reader) Read(path string, document projector.Document) (interface{}, error) {
 	request, err := s3.NewRequest(s3.GET, this.credentials, this.storage, s3.Key(path))
 	if err != nil {
 		return nil, fmt.Errorf("Could not create signed request: '%s'", err.Error())
@@ -57,10 +58,12 @@ func (this *Reader) Read(path string, document interface{}) (interface{}, error)
 		return nil, fmt.Errorf("Document read error: '%s'", err.Error())
 	}
 
-	return response.Header.Get("ETag"), nil
+	tag := response.Header.Get("ETag")
+	document.SetVersion(tag)
+	return tag, nil
 }
 
-func (this *Reader) ReadPanic(path string, document interface{}) interface{} {
+func (this *Reader) ReadPanic(path string, document projector.Document) interface{} {
 	if etag, err := this.Read(path, document); err != nil {
 		this.logger.Panic(err)
 		return nil

@@ -37,7 +37,13 @@ func (this *Writer) Write(document projector.Document) (interface{}, error) {
 	checksum := this.md5Checksum(body)
 	request := this.buildRequest(document.Path(), body, checksum)
 	response, err := this.client.Do(request)
-	return this.handleResponse(response, err)
+	etag, err := this.handleResponse(response, err)
+
+	if err == nil {
+		document.SetVersion(etag)
+	}
+
+	return etag, err
 }
 
 func (this *Writer) serialize(document projector.Document) []byte {

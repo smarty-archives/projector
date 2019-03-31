@@ -9,11 +9,13 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 	"github.com/smartystreets/logging"
 	"github.com/smartystreets/nu"
+	"github.com/smartystreets/projector"
 )
 
 func TestReaderFixture(t *testing.T) {
@@ -116,6 +118,13 @@ func (this *FakeHTTPGetClient) Do(request *http.Request) (*http.Response, error)
 // /////////////////////////////////////////////////////////////////////////////////////////
 
 type Document struct{ ID int }
+
+func (this *Document) Lapse(now time.Time) (next projector.Document) { return this }
+func (this *Document) Apply(message interface{}) bool                { return false }
+func (this *Document) Path() string                                  { return "/this/is/the/path.json" }
+func (this *Document) Reset()                                        {}
+func (this *Document) SetVersion(interface{})                        {}
+func (this *Document) Version() interface{}                          { return "etag" }
 
 // //////////////////////////////////////////////////////////////////////////////////////////
 
