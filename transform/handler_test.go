@@ -8,7 +8,6 @@ import (
 	"github.com/smartystreets/clock"
 	"github.com/smartystreets/gunit"
 	"github.com/smartystreets/messaging"
-	"github.com/smartystreets/projector"
 )
 
 func TestHandlerFixture(t *testing.T) {
@@ -19,124 +18,44 @@ type HandlerFixture struct {
 	*gunit.Fixture
 
 	input       chan messaging.Delivery
-	output      chan projector.DocumentMessage
+	output      chan interface{}
 	transformer *FakeTransformer
 	handler     *Handler
-	firstInput  messaging.Delivery
-	secondInput messaging.Delivery
-	thirdInput  messaging.Delivery
-	fourthInput messaging.Delivery
 	now         time.Time
 }
 
 func (this *HandlerFixture) Setup() {
+	this.input = make(chan messaging.Delivery, 16)
+	this.output = make(chan interface{}, 16)
+	this.transformer = &FakeTransformer{}
+	this.handler = newHandler(this.input, this.output, this.transformer)
 	this.now = clock.UTCNow()
-	this.input = make(chan messaging.Delivery, 2)
-	this.output = make(chan projector.DocumentMessage, 2)
-	this.transformer = NewFakeTransformer()
-	this.handler = NewHandler(this.input, this.output, this.transformer)
 	this.handler.clock = clock.Freeze(this.now)
-
-	this.firstInput = messaging.Delivery{
-		Message: 1,
-		Receipt: 11,
-	}
-	this.secondInput = messaging.Delivery{
-		Message: 2,
-		Receipt: 12,
-	}
-	this.thirdInput = messaging.Delivery{
-		Message: 3,
-		Receipt: 13,
-	}
-	this.fourthInput = messaging.Delivery{
-		Message: 4,
-		Receipt: 14,
-	}
 }
 
-// ///////////////////////////////////////////////////////////////
-
-func (this *HandlerFixture) TestTransformerInvokedForEveryInputMessage() {
-	this.input <- this.firstInput
-	this.input <- this.secondInput
-	close(this.input)
-
+func (this *HandlerFixture) TestMessagesHandled() {
+	this.input <- messaging.Delivery{Message: 1, Receipt: 11}
+	this.input <- messaging.Delivery{Message: 2, Receipt: 12}
+	go close(this.input)
 	this.handler.Listen()
 
-	this.So(this.transformer.received, should.Resemble, map[interface{}]time.Time{
-		this.firstInput.Message:  this.now,
-		this.secondInput.Message: this.now,
-	})
-	this.So(<-this.output, should.Resemble, projector.DocumentMessage{
-		Receipt:   this.secondInput.Receipt,
-		Documents: collectedDocuments,
-	})
-
-	<-this.output
+	this.So(this.transformer.calls, should.Equal, 1)
+	this.So(this.transformer.now, should.Equal, this.now)
+	this.So(this.transformer.messages, should.Resemble, []interface{}{1, 2})
+	this.So(<-this.output, should.Equal, 12)
+	this.So(<-this.output, should.BeNil) // channel closed
 }
 
-func (this *HandlerFixture) TestTransformerInvokedForMultipleSetsOfInputMessages() {
-	go this.handler.Listen()
-
-	this.input <- this.firstInput
-	this.input <- this.secondInput
-	time.Sleep(time.Millisecond)
-	this.input <- this.thirdInput
-	this.input <- this.fourthInput
-	close(this.input)
-
-	this.So(this.transformer.received[this.firstInput.Message], should.Equal, this.now)
-	this.So(this.transformer.received[this.secondInput.Message], should.Equal, this.now)
-	this.So(this.transformer.received[this.thirdInput.Message], should.Equal, this.now)
-	this.So(this.transformer.received[this.fourthInput.Message], should.Equal, this.now)
-
-	this.So(<-this.output, should.Resemble, projector.DocumentMessage{
-		Receipt:   this.secondInput.Receipt,
-		Documents: collectedDocuments,
-	})
-	this.So(<-this.output, should.Resemble, projector.DocumentMessage{
-		Receipt:   this.fourthInput.Receipt,
-		Documents: collectedDocuments,
-	})
-
-	<-this.output
-}
-
-// ///////////////////////////////////////////////////////////////
+/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
 
 type FakeTransformer struct {
-	received map[interface{}]time.Time
+	calls    int
+	now      time.Time
+	messages []interface{}
 }
 
-func NewFakeTransformer() *FakeTransformer {
-	return &FakeTransformer{
-		received: make(map[interface{}]time.Time),
-	}
+func (this *FakeTransformer) Transform(now time.Time, messages []interface{}) {
+	this.calls++
+	this.now = now
+	this.messages = append(this.messages, messages...)
 }
-
-func (this *FakeTransformer) TransformAllDocuments(now time.Time, messages ...interface{}) {
-	for _, message := range messages {
-		this.received[message] = now
-	}
-}
-
-var collectedDocuments = []projector.Document{
-	&fakeDocument{path: "a"},
-	&fakeDocument{path: "b"},
-	&fakeDocument{path: "c"},
-}
-
-func (this *FakeTransformer) Collect() []projector.Document {
-	return collectedDocuments
-}
-
-// ///////////////////////////////////////////////////////////////
-
-type fakeDocument struct{ path string }
-
-func (this *fakeDocument) Path() string                                  { return this.path }
-func (this *fakeDocument) Lapse(now time.Time) (next projector.Document) { return this }
-func (this *fakeDocument) Apply(message interface{}) bool                { return false }
-
-// ///////////////////////////////////////////////////////////////

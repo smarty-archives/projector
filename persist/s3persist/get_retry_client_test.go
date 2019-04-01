@@ -1,4 +1,4 @@
-package persist
+package s3persist
 
 import (
 	"errors"

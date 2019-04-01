@@ -1,4 +1,4 @@
-package persist
+package s3persist
 
 import (
 	"compress/gzip"
@@ -9,32 +9,29 @@ import (
 	"net/url"
 
 	"github.com/smartystreets/logging"
+	"github.com/smartystreets/projector"
+	"github.com/smartystreets/projector/persist"
 	"github.com/smartystreets/s3"
 )
 
-type S3Reader struct {
+type Reader struct {
 	logger *logging.Logger
 
 	storage     s3.Option
 	credentials s3.Option
-	client      HTTPClient
+	client      persist.HTTPClient
 }
 
-// temporary function for compatibility
-func NewDocumentReader(storageAddress *url.URL, accessKey, secretKey string, client HTTPClient) Reader {
-	return NewS3Reader(storageAddress, accessKey, secretKey, client)
-}
-
-func NewS3Reader(storageAddress *url.URL, accessKey, secretKey string, client HTTPClient) *S3Reader {
-	return &S3Reader{
+func NewReader(storageAddress *url.URL, accessKey, secretKey string, client persist.HTTPClient) *Reader {
+	return &Reader{
 		storage:     s3.StorageAddress(storageAddress),
 		credentials: s3.Credentials(accessKey, secretKey),
 		client:      client,
 	}
 }
 
-func (this *S3Reader) Read(path string, document interface{}) error {
-	request, err := s3.NewRequest(s3.GET, this.credentials, this.storage, s3.Key(path))
+func (this *Reader) Read(document projector.Document) error {
+	request, err := s3.NewRequest(s3.GET, this.credentials, this.storage, s3.Key(document.Path()))
 	if err != nil {
 		return fmt.Errorf("Could not create signed request: '%s'", err.Error())
 	}
@@ -47,7 +44,7 @@ func (this *S3Reader) Read(path string, document interface{}) error {
 	defer func() { _ = response.Body.Close() }()
 
 	if response.StatusCode == http.StatusNotFound {
-		this.logger.Printf("[INFO] Document not found at '%s'\n", path)
+		this.logger.Printf("[INFO] Document not found at '%s'\n", document.Path())
 		return nil
 	}
 
@@ -61,11 +58,12 @@ func (this *S3Reader) Read(path string, document interface{}) error {
 		return fmt.Errorf("Document read error: '%s'", err.Error())
 	}
 
+	document.SetVersion(response.Header.Get("ETag"))
 	return nil
 }
 
-func (this *S3Reader) ReadPanic(path string, document interface{}) {
-	if err := this.Read(path, document); err != nil {
+func (this *Reader) ReadPanic(document projector.Document) {
+	if err := this.Read(document); err != nil {
 		this.logger.Panic(err)
 	}
 }

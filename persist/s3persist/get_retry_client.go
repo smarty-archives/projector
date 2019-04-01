@@ -1,4 +1,4 @@
-package persist
+package s3persist
 
 import (
 	"errors"
@@ -7,10 +7,11 @@ import (
 
 	"github.com/smartystreets/clock"
 	"github.com/smartystreets/logging"
+	"github.com/smartystreets/projector/persist"
 )
 
 type GetRetryClient struct {
-	inner   HTTPClient
+	inner   persist.HTTPClient
 	retries int
 	sleeper *clock.Sleeper
 	logger  *logging.Logger
@@ -21,11 +22,15 @@ type GetRetryClient struct {
 // a retry loop because the Shutdown client would retry success (HTTP 200)
 // or perhaps HTTP 404?
 
-func NewGetRetryClient(inner HTTPClient, retries int) *GetRetryClient {
+func NewGetRetryClient(inner persist.HTTPClient, retries int) *GetRetryClient {
 	return &GetRetryClient{inner: inner, retries: retries}
 }
 
 func (this *GetRetryClient) Do(request *http.Request) (*http.Response, error) {
+	if request.Method != "GET" {
+		return this.inner.Do(request)
+	}
+
 	for current := 0; current <= this.retries; current++ {
 		response, err := this.inner.Do(request)
 		if err == nil && response.StatusCode == http.StatusOK {

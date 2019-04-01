@@ -1,4 +1,4 @@
-package persist
+package s3persist
 
 import (
 	"bytes"
@@ -88,7 +88,7 @@ func (this *PutRetryClientFixture) TestClientRetriesBadStatus_ThenSucceeds() {
 // //////////////////////////////////////////////////////////////////
 
 func buildRequestFromPath(path string) *http.Request {
-	request, _ := http.NewRequest("GET", path, nil)
+	request, _ := http.NewRequest("PUT", path, nil)
 	request.Body = newNopCloser([]byte(bodyPayload))
 	return request
 }
