@@ -5,16 +5,16 @@ import (
 	"time"
 )
 
-type MultiTransformer struct {
+type multiTransformer struct {
 	transformers []Transformer
 	waiter       sync.WaitGroup
 }
 
-func newMultiTransformer(transformers []Transformer) *MultiTransformer {
-	return &MultiTransformer{transformers: transformers}
+func newMultiTransformer(transformers []Transformer) *multiTransformer {
+	return &multiTransformer{transformers: transformers}
 }
 
-func (this *MultiTransformer) Transform(now time.Time, messages []interface{}) {
+func (this *multiTransformer) Transform(now time.Time, messages []interface{}) {
 	count := len(this.transformers)
 	this.waiter.Add(count)
 
@@ -24,7 +24,7 @@ func (this *MultiTransformer) Transform(now time.Time, messages []interface{}) {
 
 	this.waiter.Wait()
 }
-func (this *MultiTransformer) transform(index int, now time.Time, messages []interface{}) {
+func (this *multiTransformer) transform(index int, now time.Time, messages []interface{}) {
 	this.transformers[index].Transform(now, messages)
 	this.waiter.Done()
 }

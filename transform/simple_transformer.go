@@ -7,22 +7,22 @@ import (
 	"github.com/smartystreets/projector/persist"
 )
 
-type SimpleTransformer struct {
+type simpleTransformer struct {
 	document projector.Document
 	storage  persist.ReadWriter
 }
 
-func newSimpleTransformer(document projector.Document, storage persist.ReadWriter) *SimpleTransformer {
-	return &SimpleTransformer{document: document, storage: storage}
+func newSimpleTransformer(document projector.Document, storage persist.ReadWriter) *simpleTransformer {
+	return &simpleTransformer{document: document, storage: storage}
 }
 
-func (this *SimpleTransformer) Transform(now time.Time, messages []interface{}) {
+func (this *simpleTransformer) Transform(now time.Time, messages []interface{}) {
 	this.document = this.document.Lapse(now)
 	for this.apply(messages) && !this.save() {
 	}
 }
 
-func (this *SimpleTransformer) apply(messages []interface{}) (modified bool) {
+func (this *simpleTransformer) apply(messages []interface{}) (modified bool) {
 	for _, message := range messages {
 		if message != nil {
 			modified = this.document.Apply(message) || modified
@@ -31,7 +31,7 @@ func (this *SimpleTransformer) apply(messages []interface{}) (modified bool) {
 	return modified
 }
 
-func (this *SimpleTransformer) save() bool {
+func (this *simpleTransformer) save() bool {
 	if _, err := this.storage.Write(this.document); err == nil {
 		return true
 	} else {
