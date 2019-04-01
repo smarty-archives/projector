@@ -7,6 +7,7 @@ import (
 	"github.com/smartystreets/projector"
 )
 
+// TODO: since we're loading a document, we have the Path() available to us!
 type Reader interface {
 	Read(path string, document projector.Document) error
 	ReadPanic(path string, document projector.Document)
