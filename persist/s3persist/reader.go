@@ -30,8 +30,8 @@ func NewReader(storageAddress *url.URL, accessKey, secretKey string, client pers
 	}
 }
 
-func (this *Reader) Read(path string, document projector.Document) error {
-	request, err := s3.NewRequest(s3.GET, this.credentials, this.storage, s3.Key(path))
+func (this *Reader) Read(document projector.Document) error {
+	request, err := s3.NewRequest(s3.GET, this.credentials, this.storage, s3.Key(document.Path()))
 	if err != nil {
 		return fmt.Errorf("Could not create signed request: '%s'", err.Error())
 	}
@@ -44,7 +44,7 @@ func (this *Reader) Read(path string, document projector.Document) error {
 	defer func() { _ = response.Body.Close() }()
 
 	if response.StatusCode == http.StatusNotFound {
-		this.logger.Printf("[INFO] Document not found at '%s'\n", path)
+		this.logger.Printf("[INFO] Document not found at '%s'\n", document.Path())
 		return nil
 	}
 
@@ -62,8 +62,8 @@ func (this *Reader) Read(path string, document projector.Document) error {
 	return nil
 }
 
-func (this *Reader) ReadPanic(path string, document projector.Document) {
-	if err := this.Read(path, document); err != nil {
+func (this *Reader) ReadPanic(document projector.Document) {
+	if err := this.Read(document); err != nil {
 		this.logger.Panic(err)
 	}
 }

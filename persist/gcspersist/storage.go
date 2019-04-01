@@ -34,10 +34,10 @@ func NewReadWriter(ctx context.Context, client *storage.Client, bucket string, p
 	}
 }
 
-func (this *ReadWriter) Read(filename string, document projector.Document) error {
+func (this *ReadWriter) Read(document projector.Document) error {
 	reader, err := this.client.
 		Bucket(this.bucket).
-		Object(this.normalizeFilename(filename)).
+		Object(this.normalizeFilename(document.Path())).
 		NewReader(this.context)
 
 	if storage.ErrObjectNotExist == err {
@@ -58,8 +58,8 @@ func (this *ReadWriter) Read(filename string, document projector.Document) error
 	document.SetVersion(reader.Attrs.Generation)
 	return nil
 }
-func (this *ReadWriter) ReadPanic(path string, document projector.Document) {
-	if err := this.Read(path, document); err != nil {
+func (this *ReadWriter) ReadPanic(document projector.Document) {
+	if err := this.Read(document); err != nil {
 		this.logger.Panic(err)
 	}
 }

@@ -7,10 +7,9 @@ import (
 	"github.com/smartystreets/projector"
 )
 
-// TODO: since we're loading a document, we have the Path() available to us!
 type Reader interface {
-	Read(path string, document projector.Document) error
-	ReadPanic(path string, document projector.Document)
+	Read(document projector.Document) error
+	ReadPanic(document projector.Document)
 }
 
 // Writer writes the document and gives back the updated generation/etag/ID of the document with storage.

@@ -86,12 +86,12 @@ func NewFakeStorage() *FakeStorage {
 	return &FakeStorage{reads: map[string]projector.Document{}, writes: map[string]projector.Document{}}
 }
 
-func (this *FakeStorage) ReadPanic(path string, document projector.Document) { panic("nop") }
-func (this *FakeStorage) Read(path string, document projector.Document) error {
+func (this *FakeStorage) ReadPanic(document projector.Document) { panic("nop") }
+func (this *FakeStorage) Read(document projector.Document) error {
 	this.mutex.Lock()
 	defer this.mutex.Unlock()
 
-	this.reads[path] = document
+	this.reads[document.Path()] = document
 	return nil
 }
 func (this *FakeStorage) Write(document projector.Document) error {

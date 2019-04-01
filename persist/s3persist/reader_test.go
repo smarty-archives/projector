@@ -25,14 +25,12 @@ func TestReaderFixture(t *testing.T) {
 type ReaderFixture struct {
 	*gunit.Fixture
 
-	path     string
 	reader   *Reader
 	client   *FakeHTTPGetClient // HTTPClient
 	document *Document
 }
 
 func (this *ReaderFixture) Setup() {
-	this.path = "/document/path"
 	this.client = &FakeHTTPGetClient{}
 	address := nu.URLParsed("https://bucket.s3-us-west-1.amazonaws.com/")
 	this.reader = NewReader(address, "access", "secret", this.client)
@@ -71,7 +69,7 @@ func (this *ReaderFixture) TestValidUncompressedResponse_PopulatesDocument() {
 	var validUncompressedResponse = &http.Response{StatusCode: 200, Body: newHTTPBody(`{"ID": 1234}`)}
 	this.client.response = validUncompressedResponse
 	this.read()
-	this.So(this.client.request.URL.Path, should.Equal, "/document/path")
+	this.So(this.client.request.URL.Path, should.Equal, this.document.Path())
 	this.So(this.document.ID, should.Equal, 1234)
 	this.So(validUncompressedResponse.Body.(*FakeHTTPResponseBody).closed, should.BeTrue)
 }
@@ -94,7 +92,7 @@ func (this *ReaderFixture) TestValidCompressedResponse_PopulatesDocument() {
 	this.So(this.document.ID, should.Equal, 1234)
 }
 func (this *ReaderFixture) read() {
-	this.reader.ReadPanic(this.path, this.document)
+	this.reader.ReadPanic(this.document)
 }
 func (this *ReaderFixture) assertPanic(message string) {
 	this.So(this.read, should.Panic)

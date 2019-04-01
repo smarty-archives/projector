@@ -68,7 +68,7 @@ func (this *simpleTransformer) save() bool {
 		return true
 	} else {
 		this.document.Reset()
-		_ = this.storage.Read(this.document.Path(), this.document)
+		_ = this.storage.Read(this.document)
 		return false
 	}
 }
