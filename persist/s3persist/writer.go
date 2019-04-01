@@ -32,18 +32,19 @@ func NewWriter(storage *url.URL, accessKey, secretKey string, client persist.HTT
 	}
 }
 
-func (this *Writer) Write(document projector.Document) (interface{}, error) {
+func (this *Writer) Write(document projector.Document) error {
 	body := this.serialize(document)
 	checksum := this.md5Checksum(body)
 	request := this.buildRequest(document.Path(), body, checksum)
 	response, err := this.client.Do(request)
-	etag, err := this.handleResponse(response, err)
 
-	if err == nil {
+	if etag, err := this.handleResponse(response, err); err == nil {
 		document.SetVersion(etag)
+	} else {
+		return err
 	}
 
-	return etag, err
+	return nil
 }
 
 func (this *Writer) serialize(document projector.Document) []byte {

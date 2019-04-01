@@ -8,14 +8,14 @@ import (
 )
 
 type Reader interface {
-	Read(path string, document projector.Document) (interface{}, error)
-	ReadPanic(path string, document projector.Document) interface{}
+	Read(path string, document projector.Document) error
+	ReadPanic(path string, document projector.Document)
 }
 
 // Writer writes the document and gives back the updated generation/etag/ID of the document with storage.
 // Even in the case of an error, the ID will be returned
 type Writer interface {
-	Write(projector.Document) (interface{}, error)
+	Write(projector.Document) error
 }
 
 type ReadWriter interface {

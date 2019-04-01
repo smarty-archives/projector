@@ -32,11 +32,11 @@ func (this *simpleTransformer) apply(messages []interface{}) (modified bool) {
 }
 
 func (this *simpleTransformer) save() bool {
-	if _, err := this.storage.Write(this.document); err == nil {
+	if err := this.storage.Write(this.document); err == nil {
 		return true
 	} else {
 		this.document.Reset()
-		_, _ = this.storage.Read(this.document.Path(), this.document)
+		_ = this.storage.Read(this.document.Path(), this.document)
 		return false
 	}
 }

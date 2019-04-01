@@ -30,22 +30,22 @@ func NewReader(storageAddress *url.URL, accessKey, secretKey string, client pers
 	}
 }
 
-func (this *Reader) Read(path string, document projector.Document) (interface{}, error) {
+func (this *Reader) Read(path string, document projector.Document) error {
 	request, err := s3.NewRequest(s3.GET, this.credentials, this.storage, s3.Key(path))
 	if err != nil {
-		return nil, fmt.Errorf("Could not create signed request: '%s'", err.Error())
+		return fmt.Errorf("Could not create signed request: '%s'", err.Error())
 	}
 
 	response, err := this.client.Do(request)
 	if err != nil {
-		return nil, fmt.Errorf("HTTP Client Error: '%s'", err.Error())
+		return fmt.Errorf("HTTP Client Error: '%s'", err.Error())
 	}
 
 	defer func() { _ = response.Body.Close() }()
 
 	if response.StatusCode == http.StatusNotFound {
 		this.logger.Printf("[INFO] Document not found at '%s'\n", path)
-		return nil, nil
+		return nil
 	}
 
 	reader := response.Body.(io.Reader)
@@ -55,19 +55,15 @@ func (this *Reader) Read(path string, document projector.Document) (interface{},
 
 	decoder := json.NewDecoder(reader)
 	if err := decoder.Decode(document); err != nil {
-		return nil, fmt.Errorf("Document read error: '%s'", err.Error())
+		return fmt.Errorf("Document read error: '%s'", err.Error())
 	}
 
-	tag := response.Header.Get("ETag")
-	document.SetVersion(tag)
-	return tag, nil
+	document.SetVersion(response.Header.Get("ETag"))
+	return nil
 }
 
-func (this *Reader) ReadPanic(path string, document projector.Document) interface{} {
-	if etag, err := this.Read(path, document); err != nil {
+func (this *Reader) ReadPanic(path string, document projector.Document) {
+	if err := this.Read(path, document); err != nil {
 		this.logger.Panic(err)
-		return nil
-	} else {
-		return etag
 	}
 }

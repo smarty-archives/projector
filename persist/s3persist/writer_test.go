@@ -37,7 +37,7 @@ func (this *WriterFixture) Setup() {
 // /////////////////////////////////////////////////////////////////
 
 func (this *WriterFixture) TestDocumentIsTranslatedToAnHTTPRequest() {
-	etag, _ := this.writer.Write(writableDocument)
+	_ = this.writer.Write(writableDocument)
 	this.So(this.client.received, should.NotBeNil)
 	this.So(this.client.received.URL.Path, should.Equal, writableDocument.Path())
 	this.So(this.client.received.Method, should.Equal, "PUT")
@@ -49,7 +49,6 @@ func (this *WriterFixture) TestDocumentIsTranslatedToAnHTTPRequest() {
 	this.So(this.client.received.Header.Get("Content-MD5"), should.NotBeBlank)
 	this.So(this.client.received.Header.Get("x-amz-server-side-encryption"), should.NotBeBlank)
 	this.So(this.client.responseBody.closed, should.Equal, 1)
-	this.So(etag, should.Equal, "etag-here")
 }
 func decodeBody(body []byte) string {
 	buffer := bytes.NewReader(body)
@@ -61,7 +60,7 @@ func decodeBody(body []byte) string {
 // /////////////////////////////////////////////////////////////////
 
 func (this *WriterFixture) TestDocumentWithIncompatibleFieldCausesPanicUponSerialization() {
-	action := func() { _, _ = this.writer.Write(badJSONDocument) }
+	action := func() { _ = this.writer.Write(badJSONDocument) }
 	this.So(action, should.PanicWith, "json: unsupported type: chan int")
 }
 
@@ -69,7 +68,7 @@ func (this *WriterFixture) TestDocumentWithIncompatibleFieldCausesPanicUponSeria
 
 func (this *WriterFixture) TestThatInnerClientFailureCausesPanic() {
 	this.client.err = errors.New("Failure")
-	action := func() { _, _ = this.writer.Write(writableDocument) }
+	action := func() { _ = this.writer.Write(writableDocument) }
 	this.So(action, should.PanicWith, this.client.err.Error())
 }
 
@@ -78,7 +77,7 @@ func (this *WriterFixture) TestThatInnerClientFailureCausesPanic() {
 func (this *WriterFixture) TestThatInnerClientUnsuccessfulCausesPanic() {
 	this.client.statusCode = http.StatusInternalServerError
 	this.client.statusMessage = "Internal Server Error"
-	action := func() { _, _ = this.writer.Write(writableDocument) }
+	action := func() { _ = this.writer.Write(writableDocument) }
 	this.So(action, should.PanicWith, "Non-200 HTTP Status Code: 500 Internal Server Error")
 }
 

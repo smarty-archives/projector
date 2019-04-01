@@ -34,41 +34,37 @@ func NewReadWriter(ctx context.Context, client *storage.Client, bucket string, p
 	}
 }
 
-func (this *ReadWriter) Read(filename string, document projector.Document) (interface{}, error) {
+func (this *ReadWriter) Read(filename string, document projector.Document) error {
 	reader, err := this.client.
 		Bucket(this.bucket).
 		Object(this.normalizeFilename(filename)).
 		NewReader(this.context)
 
 	if storage.ErrObjectNotExist == err {
-		return 0, nil
+		return nil
 	}
 
 	defer func() { _ = reader.Close() }()
 
 	if err != nil {
-		return 0, err
+		return err
 	}
 
 	decoder := json.NewDecoder(reader)
 	if err := decoder.Decode(document); err != nil {
-		return 0, fmt.Errorf("document read error: '%s'", err.Error())
+		return fmt.Errorf("document read error: '%s'", err.Error())
 	}
 
-	generation := reader.Attrs.Generation
-	document.SetVersion(generation)
-	return generation, nil
+	document.SetVersion(reader.Attrs.Generation)
+	return nil
 }
-func (this *ReadWriter) ReadPanic(path string, document projector.Document) interface{} {
-	if etag, err := this.Read(path, document); err != nil {
+func (this *ReadWriter) ReadPanic(path string, document projector.Document) {
+	if err := this.Read(path, document); err != nil {
 		this.logger.Panic(err)
-		return 0
-	} else {
-		return etag
 	}
 }
 
-func (this *ReadWriter) Write(document projector.Document) (interface{}, error) {
+func (this *ReadWriter) Write(document projector.Document) error {
 	var generation int64
 	if value, ok := document.Version().(int64); ok {
 		generation = value
@@ -92,16 +88,15 @@ func (this *ReadWriter) Write(document projector.Document) (interface{}, error) 
 	writer.MD5 = md5Checksum(body.Bytes())
 
 	if _, err := io.Copy(writer, body); err != nil {
-		return 0, err
+		return err
 	}
 
 	if err := writer.Close(); err != nil {
-		return 0, wrapError(err)
+		return wrapError(err)
 	}
 
-	generation = writer.Attrs().Generation
-	document.SetVersion(generation)
-	return generation, nil
+	document.SetVersion(writer.Attrs().Generation)
+	return nil
 }
 func (this *ReadWriter) normalizeFilename(value string) string {
 	value = path.Join(this.pathPrefix, value)

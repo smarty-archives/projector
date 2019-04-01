@@ -90,15 +90,14 @@ func (this *ReaderFixture) TestValidCompressedResponse_PopulatesDocument() {
 	validCompressedResponse.Body = ioutil.NopCloser(targetBuffer)
 
 	this.client.response = validCompressedResponse
-	etag := this.read()
+	this.read()
 	this.So(this.document.ID, should.Equal, 1234)
-	this.So(etag, should.Equal, "abc1234")
 }
-func (this *ReaderFixture) read() interface{} {
-	return this.reader.ReadPanic(this.path, this.document)
+func (this *ReaderFixture) read() {
+	this.reader.ReadPanic(this.path, this.document)
 }
 func (this *ReaderFixture) assertPanic(message string) {
-	this.So(func() { this.read() }, should.Panic)
+	this.So(this.read, should.Panic)
 	this.So(this.document.ID, should.Equal, 0)
 }
 
