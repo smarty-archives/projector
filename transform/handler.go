@@ -9,26 +9,25 @@ type Handler struct {
 	input       <-chan messaging.Delivery
 	output      chan<- interface{}
 	transformer Transformer
-	clock       *clock.Clock
 	messages    []interface{}
+	clock       *clock.Clock
 }
 
-func NewHandler(input <-chan messaging.Delivery, output chan<- interface{}, transformer Transformer) *Handler {
+func newHandler(input <-chan messaging.Delivery, output chan<- interface{}, transformer Transformer) *Handler {
 	return &Handler{input: input, output: output, transformer: transformer}
 }
 
 func (this *Handler) Listen() {
 	for delivery := range this.input {
 		this.messages = append(this.messages, delivery.Message)
-		if len(this.input) == 0 {
-			this.transform(delivery.Receipt)
+		if len(this.input) > 0 {
+			continue
 		}
+
+		this.transformer.Transform(this.clock.UTCNow(), this.messages)
+		this.output <- delivery.Receipt
+		this.messages = this.messages[0:0]
 	}
 
 	close(this.output)
-}
-func (this *Handler) transform(receipt interface{}) {
-	this.transformer.TransformAllDocuments(this.clock.UTCNow(), this.messages...)
-	this.output <- receipt
-	this.messages = this.messages[0:0]
 }
