@@ -41,6 +41,7 @@ func (this *ReadWriter) Read(document projector.Document) error {
 		NewReader(this.context)
 
 	if storage.ErrObjectNotExist == err {
+		this.logger.Printf("[INFO] Document not found at '%s'\n", document.Path())
 		return nil
 	}
 
