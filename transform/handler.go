@@ -2,7 +2,10 @@ package transform
 
 import (
 	"github.com/smartystreets/clock"
+	"github.com/smartystreets/listeners"
 	"github.com/smartystreets/messaging"
+	"github.com/smartystreets/projector"
+	"github.com/smartystreets/projector/persist"
 )
 
 type Handler struct {
@@ -11,6 +14,10 @@ type Handler struct {
 	transformer Transformer
 	messages    []interface{}
 	clock       *clock.Clock
+}
+
+func NewHandler(i <-chan messaging.Delivery, o chan<- interface{}, rw persist.ReadWriter, d ...projector.Document) listeners.Listener {
+	return newHandler(i, o, newTransformer(rw, d...))
 }
 
 func newHandler(input <-chan messaging.Delivery, output chan<- interface{}, transformer Transformer) *Handler {
