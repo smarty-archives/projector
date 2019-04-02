@@ -85,10 +85,9 @@ func (this *ReadWriter) Write(document projector.Document) error {
 		DoesNotExist:    generation == 0,
 	}
 
-	filename := path.Join(this.pathPrefix, document.Path())
 	writer := this.client.
 		Bucket(this.bucket).
-		Object(this.normalizeFilename(filename)).
+		Object(this.normalizeFilename(document.Path())).
 		If(conditions).
 		NewWriter(this.context)
 
