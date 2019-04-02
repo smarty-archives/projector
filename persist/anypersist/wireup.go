@@ -29,6 +29,7 @@ type Wireup struct {
 
 func New(options ...Option) *Wireup {
 	this := &Wireup{engine: engineUnknown}
+	Defaults()(this)
 	for _, option := range options {
 		option(this)
 	}
