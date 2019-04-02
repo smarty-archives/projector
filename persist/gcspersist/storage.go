@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"path"
 	"strings"
 
@@ -27,8 +26,8 @@ type ReadWriter struct {
 	logger     *logging.Logger
 }
 
-func NewReadWriter(ctx context.Context, bucketName, pathPrefix string, httpClient *http.Client, serviceAccountKey []byte) (*ReadWriter, error) {
-	options := []option.ClientOption{option.WithCredentialsJSON(serviceAccountKey), option.WithHTTPClient(httpClient)}
+func NewReadWriter(ctx context.Context, bucketName, pathPrefix string, serviceAccountKey []byte) (*ReadWriter, error) {
+	options := []option.ClientOption{option.WithCredentialsJSON(serviceAccountKey)}
 	if client, err := storage.NewClient(ctx, options...); err != nil {
 		return nil, err
 	} else {
@@ -55,13 +54,11 @@ func (this *ReadWriter) Read(document projector.Document) error {
 	if storage.ErrObjectNotExist == err {
 		this.logger.Printf("[INFO] Document not found at '%s'\n", document.Path())
 		return nil
+	} else if err != nil {
+		return err
 	}
 
 	defer func() { _ = reader.Close() }()
-
-	if err != nil {
-		return err
-	}
 
 	decoder := json.NewDecoder(reader)
 	if err := decoder.Decode(document); err != nil {

@@ -70,11 +70,10 @@ func (this *Wireup) buildGCS() (persist.ReadWriter, error) {
 		return nil, errors.New("credentials for Google Cloud Storage not provided: Service Account Key")
 	}
 
-	httpClient := this.buildHTTPClient()
-	return gcspersist.NewReadWriter(this.context, this.bucketName, this.pathPrefix, httpClient, this.serviceAccountKey)
+	return gcspersist.NewReadWriter(this.context, this.bucketName, this.pathPrefix, this.serviceAccountKey)
 }
 
-func (this *Wireup) buildHTTPClient() *http.Client {
+func (this *Wireup) buildHTTPClient() persist.HTTPClient {
 	return &http.Client{Timeout: this.timeout}
 }
 func (this *Wireup) appendRetryClient(client persist.HTTPClient) persist.HTTPClient {
