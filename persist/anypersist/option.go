@@ -25,15 +25,13 @@ func MaxRetries(max uint64) Option {
 }
 
 func Choose(engine string, address *url.URL, accessKey, secretKey string,
-	ctx context.Context, bucketName, pathPrefix, serviceAccountKey string) Option {
-
-	return func(this *Wireup) {
-		if engine == "gcs" {
-			raw, _ := base64.StdEncoding.DecodeString(serviceAccountKey)
-			GoogleCloudStorage(ctx, bucketName, pathPrefix, raw)(this)
-		} else {
-			S3(address, accessKey, secretKey)
-		}
+	ctx context.Context, bucketName, pathPrefix, serviceAccountKey string,
+) Option {
+	if engine == "gcs" {
+		raw, _ := base64.StdEncoding.DecodeString(serviceAccountKey)
+		return GoogleCloudStorage(ctx, bucketName, pathPrefix, raw)
+	} else {
+		return S3(address, accessKey, secretKey)
 	}
 }
 func S3(address *url.URL, accessKey, secretKey string) Option {
