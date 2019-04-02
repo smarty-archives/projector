@@ -85,7 +85,7 @@ type FakeStorage struct {
 func NewFakeStorage() *FakeStorage {
 	return &FakeStorage{reads: map[string]projector.Document{}, writes: map[string]projector.Document{}}
 }
-
+func (this *FakeStorage) Name() string                          { panic("nop") }
 func (this *FakeStorage) ReadPanic(document projector.Document) { panic("nop") }
 func (this *FakeStorage) Read(document projector.Document) error {
 	this.mutex.Lock()

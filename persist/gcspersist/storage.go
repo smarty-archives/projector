@@ -44,6 +44,8 @@ func newReadWriter(ctx context.Context, client *storage.Client, bucket string, p
 	}
 }
 
+func (this *ReadWriter) Name() string { return "Google Cloud Storage" }
+
 func (this *ReadWriter) Read(document projector.Document) error {
 	reader, err := this.client.
 		Bucket(this.bucket).

@@ -21,6 +21,7 @@ type Writer interface {
 type ReadWriter interface {
 	Reader
 	Writer
+	Name() string
 }
 
 type HTTPClient interface {

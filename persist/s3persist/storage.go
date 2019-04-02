@@ -6,14 +6,16 @@ import (
 	"github.com/smartystreets/projector/persist"
 )
 
-type Storage struct {
+type ReadWriter struct {
 	*Reader
 	*Writer
 }
 
-func NewStorage(address *url.URL, accessKey, secretKey string, client persist.HTTPClient) *Storage {
-	return &Storage{
+func NewStorage(address *url.URL, accessKey, secretKey string, client persist.HTTPClient) persist.ReadWriter {
+	return &ReadWriter{
 		Reader: NewReader(address, accessKey, secretKey, client),
 		Writer: NewWriter(address, accessKey, secretKey, client),
 	}
 }
+
+func (this *ReadWriter) Name() string { return "AWS S3" }
