@@ -11,3 +11,9 @@ type Document interface {
 	SetVersion(interface{})
 	Version() interface{}
 }
+
+type Version struct{ value interface{} }
+
+func (this *Version) SetVersion(value interface{}) { this.value = value }
+func (this *Version) Version() interface{}         { return this.value }
+func (this *Version) Reset()                       { this.value = nil }
