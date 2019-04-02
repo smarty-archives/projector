@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"path"
 	"strings"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/smartystreets/logging"
 	"github.com/smartystreets/projector"
 	"github.com/smartystreets/projector/persist"
+	"google.golang.org/api/option"
 )
 
 type ReadWriter struct {
@@ -25,7 +27,15 @@ type ReadWriter struct {
 	logger     *logging.Logger
 }
 
-func NewReadWriter(ctx context.Context, client *storage.Client, bucket string, pathPrefix string) *ReadWriter {
+func NewReadWriter(ctx context.Context, bucketName, pathPrefix string, httpClient *http.Client, serviceAccountKey []byte) (*ReadWriter, error) {
+	options := []option.ClientOption{option.WithCredentialsJSON(serviceAccountKey), option.WithHTTPClient(httpClient)}
+	if client, err := storage.NewClient(ctx, options...); err != nil {
+		return nil, err
+	} else {
+		return newReadWriter(ctx, client, bucketName, pathPrefix), nil
+	}
+}
+func newReadWriter(ctx context.Context, client *storage.Client, bucket string, pathPrefix string) *ReadWriter {
 	return &ReadWriter{
 		context:    ctx,
 		client:     client,
