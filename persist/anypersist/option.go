@@ -14,7 +14,7 @@ type Option func(*Wireup)
 func Defaults() Option {
 	return func(this *Wireup) {
 		TimeoutAfter(time.Second * 10)(this)
-		MaxRetries(math.MaxUint64)(this)
+		MaxRetries(math.MaxUint32)(this)
 	}
 }
 func TimeoutAfter(httpTimeout time.Duration) Option {
