@@ -29,7 +29,6 @@ func NewReader(settings func() StorageSettings) *Reader {
 
 func (this *Reader) Read(document projector.Document) error {
 	settings := this.settings()
-
 	if request, err := this.buildRequest(document.Path(), settings); err != nil {
 		return err
 	} else {

@@ -6,9 +6,26 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 )
+
+func ParseCredentialsFromJSON(raw []byte) (Credentials, error) {
+	type serviceAccount struct {
+		PrivateKeyPEM string `json:"private_key"`
+		ClientEmail   string `json:"client_email"`
+	}
+
+	parsed := serviceAccount{}
+	if err := json.Unmarshal(raw, &parsed); err != nil {
+		return Credentials{}, err
+	} else {
+		return NewCredentials(parsed.ClientEmail, []byte(parsed.PrivateKeyPEM))
+	}
+}
+
+/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
 
 type Credentials struct {
 	AccessID   string
