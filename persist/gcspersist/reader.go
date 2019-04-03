@@ -2,13 +2,14 @@ package gcspersist
 
 import (
 	"fmt"
-	"log"
 	"net/http"
+	"path"
 	"time"
 
 	"github.com/smartystreets/clock"
 	"github.com/smartystreets/projector"
 	"github.com/smartystreets/projector/persist"
+	"github.com/smartystreets/projector/persist/gcs"
 )
 
 type Reader struct {
@@ -20,7 +21,7 @@ type StorageSettings struct {
 	HTTPClient  persist.HTTPClient
 	BucketName  string
 	PathPrefix  string
-	Credentials Credentials
+	Credentials gcs.Credentials
 }
 
 func NewReader(settings func() StorageSettings) *Reader {
@@ -32,14 +33,15 @@ func (this *Reader) Read(document projector.Document) error {
 	if request, err := this.buildRequest(document.Path(), settings); err != nil {
 		return err
 	} else {
-		log.Println("FULL URL:", request.URL.String())
+		fmt.Println(request.URL.String())
 		return nil
 	}
 }
 func (this *Reader) buildRequest(documentPath string, settings StorageSettings) (*http.Request, error) {
 	expiration := this.clock.UTCNow().Add(time.Hour * 24)
+	documentPath = path.Join(settings.PathPrefix, documentPath)
 
-	if request, err := NewRequest("GET", documentPath, expiration, settings); err != nil {
+	if request, err := gcs.NewRequest("GET", settings.BucketName, documentPath, expiration, settings.Credentials); err != nil {
 		return nil, err
 	} else if signedURL, err := request.SignedURL(); err != nil {
 		return nil, err

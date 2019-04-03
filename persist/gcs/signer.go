@@ -1,10 +1,9 @@
-package gcspersist
+package gcs
 
 import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"path"
 	"time"
 )
 
@@ -17,12 +16,10 @@ type Signer struct {
 	Key         PrivateKey
 }
 
-func NewSigner(method string, bucketName, pathPrefix, documentPath,
-	contentType string, contentMD5 []byte, expiration time.Time, key PrivateKey,
-) (Signer, error) {
+func NewSigner(method string, fullPath, contentType string, contentMD5 []byte, expiration time.Time, key PrivateKey) (Signer, error) {
 	return Signer{
 		Method:      method,
-		Path:        path.Join("/", bucketName, pathPrefix, documentPath),
+		Path:        fullPath,
 		ContentType: contentType,
 		ContentMD5:  contentMD5,
 		Expiration:  expiration,

@@ -1,4 +1,4 @@
-package gcspersist
+package gcs
 
 import (
 	"crypto"
