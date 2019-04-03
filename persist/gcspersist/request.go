@@ -32,13 +32,13 @@ func NewRequest(method string, documentPath string, expiration time.Time, settin
 }
 
 func (this Request) SignedURL() (string, error) {
-	if calculated, err := this.signer.Calculate(); err != nil {
+	if signature, err := this.signer.Calculate(); err != nil {
 		return "", err
 	} else {
-		return this.buildURL(calculated), nil
+		return this.buildSignedURL(signature), nil
 	}
 }
-func (this Request) buildURL(signature string) string {
+func (this Request) buildSignedURL(signature string) string {
 	targetURL := &url.URL{
 		Scheme: "https",
 		Host:   "storage.googleapis.com",
