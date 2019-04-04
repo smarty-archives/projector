@@ -84,7 +84,7 @@ func (this *ReadWriter) Write(document projector.Document) error {
 		gcs.PutWithContentEncoding("gzip"),
 		gcs.PutWithContentType("application/json"),
 		gcs.PutWithContentMD5(checksum[:]),
-		gcs.PutWithServerSideEncryption(gcs.ServerSideEncryptionAES256),
+		gcs.PutWithServerSideEncryption(),
 		gcs.PutWithGeneration(generation))
 
 	if err != nil {

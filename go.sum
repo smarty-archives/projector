@@ -1,5 +1,6 @@
 github.com/aws/aws-sdk-go-v2 v0.7.0 h1:a5xRI/tBmUFKuAA0SOyEY2P1YhQb+jVOEI9P/7KfrP0=
 github.com/aws/aws-sdk-go-v2 v0.7.0/go.mod h1:17MaCZ9g0q5BIMxwzRQeiv8M3c8+W7iuBnlWAEprcxE=
+github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/go-sql-driver/mysql v1.4.0/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
@@ -12,14 +13,12 @@ github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINE
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644/go.mod h1:nkxAfR/5quYxwPZhyDxgasBMnRtBZd0FCEpawpjMUFg=
-github.com/smartystreets/assertions v0.0.0-20190401155651-0d4d5de40ea3 h1:Igr9AfhAVXpEjnbyTNsbgT3MLp2RffcUPvliPDIbMvQ=
-github.com/smartystreets/assertions v0.0.0-20190401155651-0d4d5de40ea3/go.mod h1:OnSkiWE9lh6wB0YB77sQom3nweQdgAjqCqsofrRNTgc=
+github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3 h1:hBSHahWMEgzwRyS6dRpxY0XyjZsHyQ61s084wo5PJe0=
+github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3/go.mod h1:OnSkiWE9lh6wB0YB77sQom3nweQdgAjqCqsofrRNTgc=
 github.com/smartystreets/clock v0.0.0-20180622225331-ccbde14dc671 h1:wvSmZdRIBm4DONZZdBPoD/yjtj2wLiYowPDr55IZHxI=
 github.com/smartystreets/clock v0.0.0-20180622225331-ccbde14dc671/go.mod h1:BsOg323oIf8BtWXjDSLZHE2jVzhjSahj1I+0ehz15rg=
-github.com/smartystreets/gcs v0.0.0-20190404002017-4ab3c4279bd0 h1:7jw1B7ff3GUBuC/PaeBFhu8jaA10QoaKFjhxPafgFHk=
-github.com/smartystreets/gcs v0.0.0-20190404002017-4ab3c4279bd0/go.mod h1:TyNpSdXTQOm5kXG+TD4NEgyxuSyJd9ik28CMkUJHcK8=
-github.com/smartystreets/gcs v0.0.0-20190404005331-d212bdd8dcb6 h1:m0wCnroOpxg1SePzgppMQRu6NuV7EVIXYJV5M0A42aA=
-github.com/smartystreets/gcs v0.0.0-20190404005331-d212bdd8dcb6/go.mod h1:TyNpSdXTQOm5kXG+TD4NEgyxuSyJd9ik28CMkUJHcK8=
+github.com/smartystreets/gcs v0.0.0-20190404210300-e6766b603eeb h1:wtOkHYOD6Cs+qyijZVw3HnVKz2nDeLq/+E7iMZtr9ms=
+github.com/smartystreets/gcs v0.0.0-20190404210300-e6766b603eeb/go.mod h1:mwGiJdp5ivbJr76pyLsc8wHz2md8QD8zL2EldGVThhI=
 github.com/smartystreets/gunit v0.0.0-20180314194857-6f0d6275bdcd h1:p5kvxG4NHogJX1brTLtvUSGdW0/aBvIyqDSW7tmnsmQ=
 github.com/smartystreets/gunit v0.0.0-20180314194857-6f0d6275bdcd/go.mod h1:XUKj4gbqj2QvJk/OdLWzyZ3FYli0f+MdpngyryX0gcw=
 github.com/smartystreets/listeners v0.0.0-20190307043813-98f2252e6734 h1:BZboo35G3I0+sq636RwKJ/n3StnDbnYQEa1ZEQsQJlI=
@@ -32,8 +31,11 @@ github.com/smartystreets/nu v0.0.0-20190226173616-4319ba0772fd h1:CajcFwYjbTRew8
 github.com/smartystreets/nu v0.0.0-20190226173616-4319ba0772fd/go.mod h1:YHTKaLWN8Tokk5cwZd8t5xfZHlzPEdx17ibNLsFe/is=
 github.com/smartystreets/s3 v0.0.0-20180906210853-8fd7677dd81f h1:/hgB3hzAd+QSmJ1V/I5xFYx2V3heJB2woGUPTEuM6Ng=
 github.com/smartystreets/s3 v0.0.0-20180906210853-8fd7677dd81f/go.mod h1:ruif7I3ZVsPrXJ8XFty96cJApCAO0dGBfwwwJt1QJcc=
+github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1w=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
+github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0Q=
+github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 golang.org/x/net v0.0.0-20180724234803-3673e40ba225/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/net v0.0.0-20181201002055-351d144fa1fc/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
