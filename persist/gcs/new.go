@@ -31,18 +31,3 @@ var (
 	encoding          = base64.StdEncoding
 	defaultExpireTime = time.Second * 30
 )
-
-type ServerSideEncryption int
-
-func (this ServerSideEncryption) String() string {
-	if this == ServerSideEncryptionAES256 {
-		return "AES256"
-	} else {
-		return ""
-	}
-}
-
-const (
-	ServerSideEncryptionNone   ServerSideEncryption = 0
-	ServerSideEncryptionAES256 ServerSideEncryption = 1
-)

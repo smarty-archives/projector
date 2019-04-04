@@ -75,3 +75,21 @@ func WithConditionalOption(option Option, condition bool) Option {
 		return nil
 	}
 }
+
+/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
+
+type ServerSideEncryption int
+
+func (this ServerSideEncryption) String() string {
+	switch this {
+	case ServerSideEncryptionAES256:
+		return "AES256"
+	default:
+		return ""
+	}
+}
+
+const (
+	ServerSideEncryptionNone   ServerSideEncryption = 0
+	ServerSideEncryptionAES256 ServerSideEncryption = 1
+)
