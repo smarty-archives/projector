@@ -33,7 +33,7 @@ type Credentials struct {
 }
 
 func NewCredentials(accessID string, privateKey []byte) (Credentials, error) {
-	if parsed, err := NewPrivateKey(privateKey); err != nil {
+	if parsed, err := newPrivateKey(privateKey); err != nil {
 		return Credentials{}, err
 	} else {
 		return Credentials{AccessID: accessID, PrivateKey: parsed}, nil
@@ -46,7 +46,7 @@ type PrivateKey struct {
 	inner *rsa.PrivateKey
 }
 
-func NewPrivateKey(raw []byte) (PrivateKey, error) {
+func newPrivateKey(raw []byte) (PrivateKey, error) {
 	if parsed, err := tryReadPrivateKey(raw); err != nil {
 		return PrivateKey{}, err
 	} else {
