@@ -110,12 +110,11 @@ func (this *ReadWriter) execute(document projector.Document, client persist.HTTP
 	document.SetVersion(generation)
 	return nil
 }
-
 func (this *ReadWriter) handleResponse(document projector.Document, response *http.Response) (string, error) {
 	defer func() { _ = response.Body.Close() }()
 	switch response.StatusCode {
 	case http.StatusOK:
-		return response.Header.Get(headerGeneration), this.deserialize(document, response)
+		return response.Header.Get("x-goog-generation"), this.deserialize(document, response)
 	case http.StatusNotFound:
 		this.logger.Printf("[INFO] Document not found at '%s'\n", document.Path())
 		return "", nil
@@ -126,5 +125,3 @@ func (this *ReadWriter) handleResponse(document projector.Document, response *ht
 		return "", fmt.Errorf("non-200 http status code: %s", response.Status)
 	}
 }
-
-const headerGeneration = "x-goog-generation"
