@@ -17,8 +17,8 @@ github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3 h1:hBSHah
 github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3/go.mod h1:OnSkiWE9lh6wB0YB77sQom3nweQdgAjqCqsofrRNTgc=
 github.com/smartystreets/clock v0.0.0-20180622225331-ccbde14dc671 h1:wvSmZdRIBm4DONZZdBPoD/yjtj2wLiYowPDr55IZHxI=
 github.com/smartystreets/clock v0.0.0-20180622225331-ccbde14dc671/go.mod h1:BsOg323oIf8BtWXjDSLZHE2jVzhjSahj1I+0ehz15rg=
-github.com/smartystreets/gcs v0.0.0-20190404210300-e6766b603eeb h1:wtOkHYOD6Cs+qyijZVw3HnVKz2nDeLq/+E7iMZtr9ms=
-github.com/smartystreets/gcs v0.0.0-20190404210300-e6766b603eeb/go.mod h1:mwGiJdp5ivbJr76pyLsc8wHz2md8QD8zL2EldGVThhI=
+github.com/smartystreets/gcs v0.0.0-20190405141152-4fc89b5e0e38 h1:XJAwZAGIH6jI0YNP6lhDsKHRotj+ViPWh+AQe96iwyI=
+github.com/smartystreets/gcs v0.0.0-20190405141152-4fc89b5e0e38/go.mod h1:mwGiJdp5ivbJr76pyLsc8wHz2md8QD8zL2EldGVThhI=
 github.com/smartystreets/gunit v0.0.0-20180314194857-6f0d6275bdcd h1:p5kvxG4NHogJX1brTLtvUSGdW0/aBvIyqDSW7tmnsmQ=
 github.com/smartystreets/gunit v0.0.0-20180314194857-6f0d6275bdcd/go.mod h1:XUKj4gbqj2QvJk/OdLWzyZ3FYli0f+MdpngyryX0gcw=
 github.com/smartystreets/listeners v0.0.0-20190307043813-98f2252e6734 h1:BZboo35G3I0+sq636RwKJ/n3StnDbnYQEa1ZEQsQJlI=

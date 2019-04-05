@@ -1,8 +1,10 @@
 package s3persist
 
 import (
+	"bytes"
 	"errors"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"time"
@@ -50,6 +52,7 @@ func (this *PutRetryClient) Do(request *http.Request) (*http.Response, error) {
 
 	return nil, errors.New("Max retries exceeded. Unable to connect.")
 }
+
 func readResponse(response *http.Response) string {
 	responseDump, _ := httputil.DumpResponse(response, true)
 	return string(responseDump) + "\n-------------------------------------------"
@@ -58,8 +61,16 @@ func readResponse(response *http.Response) string {
 type retryBuffer struct{ io.ReadSeeker }
 
 func newRetryBuffer(body io.ReadCloser) *retryBuffer {
-	return &retryBuffer{body.(io.ReadSeeker)}
+	if readSeeker, ok := body.(io.ReadSeeker); ok {
+		return &retryBuffer{readSeeker}
+	} else {
+		// TODO: shouldn't this already be a readseeker?
+		raw, _ := ioutil.ReadAll(body)
+		reader := bytes.NewReader(raw)
+		return &retryBuffer{reader}
+	}
 }
+
 func (this *retryBuffer) Close() error {
 	_, _ = this.Seek(0, 0) // seeks to the beginning (to allow retry) when the buffer is "Closed"
 	return nil
@@ -67,5 +78,5 @@ func (this *retryBuffer) Close() error {
 
 const (
 	sleepTime        = time.Second * 5
-	logAfterAttempts = 3
+	logAfterAttempts = 0
 )
