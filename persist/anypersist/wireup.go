@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/smartystreets/gcs"
 	"github.com/smartystreets/projector/persist"
 	"github.com/smartystreets/projector/persist/gcspersist"
 	"github.com/smartystreets/projector/persist/s3persist"
@@ -70,7 +71,20 @@ func (this *Wireup) buildGCS() (persist.ReadWriter, error) {
 		return nil, errors.New("credentials for Google Cloud Storage not provided: Service Account Key")
 	}
 
-	return gcspersist.NewReadWriter(this.context, this.bucketName, this.pathPrefix, this.serviceAccountKey)
+	credentials, err := gcs.ParseCredentialsFromJSON(this.serviceAccountKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return gcspersist.NewReadWriter(func() gcspersist.StorageSettings {
+		return gcspersist.StorageSettings{
+			HTTPClient:  this.appendRetryClient(this.buildHTTPClient()),
+			BucketName:  this.bucketName,
+			PathPrefix:  this.pathPrefix,
+			Context:     this.context,
+			Credentials: credentials,
+		}
+	}), nil
 }
 
 func (this *Wireup) buildHTTPClient() persist.HTTPClient {
