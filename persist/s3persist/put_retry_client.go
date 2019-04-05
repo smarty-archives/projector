@@ -37,6 +37,8 @@ func (this *PutRetryClient) Do(request *http.Request) (*http.Response, error) {
 			return response, nil
 		} else if err != nil && response == nil && current > logAfterAttempts {
 			this.logger.Println("[WARN] Unexpected response from target storage:", err)
+		} else if response != nil && response.StatusCode == http.StatusPreconditionFailed {
+			return response, nil // this isn't an error
 		} else if err != nil && response != nil && current > logAfterAttempts {
 			this.logger.Println("[WARN] Unexpected response from target storage:", err, response.StatusCode, response.Status)
 		} else if err == nil && response.Body != nil && current > logAfterAttempts {
