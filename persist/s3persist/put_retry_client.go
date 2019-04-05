@@ -25,6 +25,7 @@ func NewPutRetryClient(inner persist.HTTPClient, retries int) *PutRetryClient {
 	return &PutRetryClient{inner: inner, retries: retries}
 }
 
+// TODO: provide a way to exit gracefully?
 func (this *PutRetryClient) Do(request *http.Request) (*http.Response, error) {
 	if request.Method != "PUT" {
 		return this.inner.Do(request)
@@ -64,10 +65,8 @@ func newRetryBuffer(body io.ReadCloser) *retryBuffer {
 	if readSeeker, ok := body.(io.ReadSeeker); ok {
 		return &retryBuffer{readSeeker}
 	} else {
-		// TODO: shouldn't this already be a readseeker?
 		raw, _ := ioutil.ReadAll(body)
-		reader := bytes.NewReader(raw)
-		return &retryBuffer{reader}
+		return &retryBuffer{bytes.NewReader(raw)}
 	}
 }
 

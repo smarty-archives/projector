@@ -36,29 +36,33 @@ func (this *ReadWriter) ReadPanic(document projector.Document) {
 }
 func (this *ReadWriter) Read(document projector.Document) error {
 	settings := this.settings()
+	resource := path.Join("/", settings.PathPrefix, document.Path())
+	expiration := this.clock.UTCNow().Add(time.Hour * 24)
 
 	return this.execute(document, settings.HTTPClient, gcs.GET,
 		gcs.WithCredentials(settings.Credentials),
 		gcs.WithBucket(settings.BucketName),
-		gcs.WithResource(path.Join("/", settings.PathPrefix, document.Path())),
-		gcs.WithExpiration(this.clock.UTCNow().Add(time.Hour*24)))
+		gcs.WithResource(resource),
+		gcs.WithExpiration(expiration))
 }
 func (this *ReadWriter) Write(document projector.Document) error {
 	settings := this.settings()
+	resource := path.Join("/", settings.PathPrefix, document.Path())
+	expiration := this.clock.UTCNow().Add(time.Hour * 24)
+	generation, _ := document.Version().(string)
 	body := this.serialize(document)
 	checksum := md5.Sum(body)
-	generation, _ := document.Version().(string)
 
 	return this.execute(document, settings.HTTPClient, gcs.PUT,
 		gcs.WithCredentials(settings.Credentials),
 		gcs.WithBucket(settings.BucketName),
-		gcs.WithResource(path.Join("/", settings.PathPrefix, document.Path())),
-		gcs.WithExpiration(this.clock.UTCNow().Add(time.Hour*24)),
+		gcs.WithResource(resource),
+		gcs.WithExpiration(expiration),
+		gcs.PutWithGeneration(generation),
 		gcs.PutWithContentBytes(body),
 		gcs.PutWithContentEncoding("gzip"),
 		gcs.PutWithContentType("application/json"),
-		gcs.PutWithContentMD5(checksum[:]),
-		gcs.PutWithGeneration(generation))
+		gcs.PutWithContentMD5(checksum[:]))
 }
 
 func (this *ReadWriter) serialize(document projector.Document) []byte {
@@ -113,8 +117,10 @@ func (this *ReadWriter) handleResponse(document projector.Document, response *ht
 	case http.StatusOK:
 		return response.Header.Get(headerGeneration), this.deserialize(document, response)
 	case http.StatusNotFound:
+		this.logger.Printf("[INFO] Document not found at '%s'\n", document.Path())
 		return "", nil
 	case http.StatusPreconditionFailed:
+		this.logger.Printf("[INFO] Document on remote storage has changed '%s'\n", document.Path())
 		return "", persist.ErrConcurrentWrite
 	default:
 		return "", fmt.Errorf("non-200 http status code: %s", response.Status)
