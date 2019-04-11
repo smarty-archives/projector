@@ -77,5 +77,5 @@ func (this *retryBuffer) Close() error {
 
 const (
 	sleepTime        = time.Second * 5
-	logAfterAttempts = 0
+	logAfterAttempts = 3
 )
