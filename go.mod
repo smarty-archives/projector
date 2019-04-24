@@ -13,5 +13,4 @@ require (
 	github.com/smartystreets/messaging v0.0.0-20190324052739-bacacbd6bf46
 	github.com/smartystreets/nu v0.0.0-20190226173616-4319ba0772fd
 	github.com/smartystreets/s3 v0.0.0-20180906210853-8fd7677dd81f
-	github.com/stretchr/testify v1.3.0 // indirect
 )
