@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 
@@ -66,6 +67,7 @@ func (this *Writer) md5Checksum(body []byte) string {
 }
 
 func (this *Writer) buildRequest(path string, body []byte, checksum string) *http.Request {
+	log.Println("[INFO] Saving document:", path)
 	request, err := s3.NewRequest(
 		s3.PUT,
 		this.credentials,
