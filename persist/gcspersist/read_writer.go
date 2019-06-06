@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"path"
 	"time"
@@ -39,7 +40,7 @@ func (this *ReadWriter) Read(document projector.Document) error {
 	resource := path.Join("/", settings.PathPrefix, document.Path())
 	expiration := this.clock.UTCNow().Add(time.Hour * 24)
 
-	return this.execute(document, settings.HTTPClient, gcs.GET,
+	return this.execute(resource, document, settings.HTTPClient, gcs.GET,
 		gcs.WithCredentials(settings.Credentials),
 		gcs.WithBucket(settings.BucketName),
 		gcs.WithResource(resource),
@@ -53,7 +54,7 @@ func (this *ReadWriter) Write(document projector.Document) error {
 	body := this.serialize(document)
 	checksum := md5.Sum(body)
 
-	return this.execute(document, settings.HTTPClient, gcs.PUT,
+	return this.execute(resource, document, settings.HTTPClient, gcs.PUT,
 		gcs.WithCredentials(settings.Credentials),
 		gcs.WithBucket(settings.BucketName),
 		gcs.WithResource(resource),
@@ -91,7 +92,7 @@ func (this *ReadWriter) deserialize(document projector.Document, response *http.
 	return nil
 }
 
-func (this *ReadWriter) execute(document projector.Document, client persist.HTTPClient, method string, options ...gcs.Option) error {
+func (this *ReadWriter) execute(resource string, document projector.Document, client persist.HTTPClient, method string, options ...gcs.Option) error {
 	request, err := gcs.NewRequest(method, options...)
 	if err != nil {
 		return fmt.Errorf("could not create signed request: %s\n", err)
@@ -102,7 +103,7 @@ func (this *ReadWriter) execute(document projector.Document, client persist.HTTP
 		return fmt.Errorf("http client error: '%s'", err)
 	}
 
-	generation, err := this.handleResponse(document, response)
+	generation, err := this.handleResponse(resource, document, response)
 	if err != nil {
 		return err
 	}
@@ -110,7 +111,8 @@ func (this *ReadWriter) execute(document projector.Document, client persist.HTTP
 	document.SetVersion(generation)
 	return nil
 }
-func (this *ReadWriter) handleResponse(document projector.Document, response *http.Response) (string, error) {
+func (this *ReadWriter) handleResponse(resource string, document projector.Document, response *http.Response) (string, error) {
+	log.Printf("[INFO] HTTP Status [%d], Content-Length: [%d], Resource: [%s]", response.StatusCode, response.ContentLength, resource)
 	defer func() { _ = response.Body.Close() }()
 	switch response.StatusCode {
 	case http.StatusOK:
