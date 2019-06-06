@@ -6,6 +6,8 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"path"
@@ -79,12 +81,8 @@ func (this *ReadWriter) serialize(document projector.Document) []byte {
 	return buffer.Bytes()
 
 }
-func (this *ReadWriter) deserialize(document projector.Document, response *http.Response) error {
-	if response.ContentLength == 0 {
-		return nil
-	}
-
-	err := json.NewDecoder(response.Body).Decode(document)
+func (this *ReadWriter) deserialize(document projector.Document, reader io.Reader) error {
+	err := json.NewDecoder(reader).Decode(document)
 	if err != nil {
 		return fmt.Errorf("document read error: '%s'", err.Error())
 	}
@@ -103,7 +101,7 @@ func (this *ReadWriter) execute(resource string, document projector.Document, cl
 		return fmt.Errorf("http client error: '%s'", err)
 	}
 
-	generation, err := this.handleResponse(resource, document, response)
+	generation, err := this.handleResponse(method, resource, document, response)
 	if err != nil {
 		return err
 	}
@@ -111,12 +109,12 @@ func (this *ReadWriter) execute(resource string, document projector.Document, cl
 	document.SetVersion(generation)
 	return nil
 }
-func (this *ReadWriter) handleResponse(resource string, document projector.Document, response *http.Response) (string, error) {
-	log.Printf("[INFO] HTTP Status [%d], Content-Length: [%d], Resource: [%s]", response.StatusCode, response.ContentLength, resource)
-	defer func() { _ = response.Body.Close() }()
+func (this *ReadWriter) handleResponse(method, resource string, document projector.Document, response *http.Response) (string, error) {
+	log.Printf("[INFO] HTTP %s Status [%d], Content-Length: [%d], Resource: [%s]", method, response.StatusCode, response.ContentLength, resource)
+
 	switch response.StatusCode {
 	case http.StatusOK:
-		return response.Header.Get("x-goog-generation"), this.deserialize(document, response)
+		return response.Header.Get("x-goog-generation"), this.handleResponseBody(document, response)
 	case http.StatusNotFound:
 		this.logger.Printf("[INFO] Document not found at '%s'\n", document.Path())
 		return "", nil
@@ -126,4 +124,25 @@ func (this *ReadWriter) handleResponse(resource string, document projector.Docum
 	default:
 		return "", fmt.Errorf("non-200 http status code: %s", response.Status)
 	}
+}
+func (this *ReadWriter) handleResponseBody(document projector.Document, response *http.Response) error {
+	defer func() { _ = response.Body.Close() }()
+
+	if response.ContentLength <= 0 {
+		return nil
+	}
+
+	payload, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+
+	buffer := bytes.NewBuffer(payload)
+	if err := this.deserialize(document, buffer); err == nil {
+		return nil
+	}
+
+	// deserialization failed, it might be that the gzip encoding is missing; try to gunzip and deserialize.
+	reader, _ := gzip.NewReader(buffer)
+	return this.deserialize(document, reader)
 }
