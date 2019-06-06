@@ -67,11 +67,17 @@ func (this *simpleTransformer) apply(messages []interface{}) (modified bool) {
 func (this *simpleTransformer) save() bool {
 	if err := this.storage.Write(this.document); err == nil {
 		return true
-	} else {
+	}
+
+	for {
 		this.document.Reset()
-		if err := this.storage.Read(this.document); err != nil {
-			log.Printf("[INFO] Error reading document [%s]: %s", this.document.Path(), err)
+
+		if err := this.storage.Read(this.document); err == nil {
+			return false // save didn't complete, messages need to be reapplied
+		} else {
+			log.Printf("[WARN] Error reading document [%s]: %s", this.document.Path(), err)
 		}
-		return false
+
+		time.Sleep(time.Second * 5)
 	}
 }
