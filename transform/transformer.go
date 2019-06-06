@@ -1,6 +1,7 @@
 package transform
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -68,7 +69,9 @@ func (this *simpleTransformer) save() bool {
 		return true
 	} else {
 		this.document.Reset()
-		_ = this.storage.Read(this.document)
+		if err := this.storage.Read(this.document); err != nil {
+			log.Printf("[INFO] Error reading document [%s]: %s", this.document.Path(), err)
+		}
 		return false
 	}
 }
