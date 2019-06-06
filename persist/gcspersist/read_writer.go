@@ -110,7 +110,7 @@ func (this *ReadWriter) execute(resource string, document projector.Document, cl
 	return nil
 }
 func (this *ReadWriter) handleResponse(method, resource string, document projector.Document, response *http.Response) (string, error) {
-	log.Printf("[INFO] HTTP %s Status [%d], Content-Length: [%d], Resource: [%s]", method, response.StatusCode, response.ContentLength, resource)
+	// log.Printf("[INFO] HTTP %s Status [%d], Content-Length: [%d], Resource: [%s]", method, response.StatusCode, response.ContentLength, resource)
 
 	switch response.StatusCode {
 	case http.StatusOK:
@@ -128,8 +128,9 @@ func (this *ReadWriter) handleResponse(method, resource string, document project
 func (this *ReadWriter) handleResponseBody(document projector.Document, response *http.Response) error {
 	defer func() { _ = response.Body.Close() }()
 
-	if response.ContentLength <= 0 {
-		return nil
+	// note "response.ContentLength == -1" means unknown length
+	if response.ContentLength == 0 {
+		return nil // no body
 	}
 
 	payload, err := ioutil.ReadAll(response.Body)
@@ -137,12 +138,11 @@ func (this *ReadWriter) handleResponseBody(document projector.Document, response
 		return err
 	}
 
-	buffer := bytes.NewBuffer(payload)
-	if err := this.deserialize(document, buffer); err == nil {
+	if err := this.deserialize(document, bytes.NewBuffer(payload)); err == nil {
 		return nil
 	}
 
-	// deserialization failed, it might be that the gzip encoding is missing; try to gunzip and deserialize.
-	reader, _ := gzip.NewReader(buffer)
+	log.Printf("[WARN] Deserialization failed for [%s], trying to gunzip first before deserializing.", document.Path())
+	reader, _ := gzip.NewReader(bytes.NewBuffer(payload))
 	return this.deserialize(document, reader)
 }
