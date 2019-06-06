@@ -69,7 +69,7 @@ func (this *ReaderFixture) TestValidUncompressedResponse_PopulatesDocument() {
 	var validUncompressedResponse = &http.Response{StatusCode: 200, Body: newHTTPBody(`{"ID": 1234}`)}
 	this.client.response = validUncompressedResponse
 	this.read()
-	this.So(this.client.request.URL.Path, should.Equal, this.document.Path())
+	this.So(this.client.request.URL.Path, should.EndWith, this.document.Path())
 	this.So(this.document.ID, should.Equal, 1234)
 	this.So(validUncompressedResponse.Body.(*FakeHTTPResponseBody).closed, should.BeTrue)
 }

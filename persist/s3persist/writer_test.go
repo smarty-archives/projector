@@ -39,7 +39,7 @@ func (this *WriterFixture) Setup() {
 func (this *WriterFixture) TestDocumentIsTranslatedToAnHTTPRequest() {
 	_ = this.writer.Write(writableDocument)
 	this.So(this.client.received, should.NotBeNil)
-	this.So(this.client.received.URL.Path, should.Equal, writableDocument.Path())
+	this.So(this.client.received.URL.Path, should.EndWith, writableDocument.Path())
 	this.So(this.client.received.Method, should.Equal, "PUT")
 	body, _ := ioutil.ReadAll(this.client.received.Body)
 	this.So(decodeBody(body), should.Equal, `{"Message":"Hello, World!"}`)
@@ -127,7 +127,7 @@ type DocumentForWriting struct{ Message string }
 
 func (this *DocumentForWriting) Lapse(now time.Time) (next projector.Document) { return this }
 func (this *DocumentForWriting) Apply(message interface{}) bool                { return false }
-func (this *DocumentForWriting) Path() string                                  { return "/this/is/the/path.json" }
+func (this *DocumentForWriting) Path() string                                  { return "/bucket/this/is/the/path.json" }
 func (this *DocumentForWriting) Reset()                                        {}
 func (this *DocumentForWriting) SetVersion(interface{})                        {}
 func (this *DocumentForWriting) Version() interface{}                          { return "etag" }
