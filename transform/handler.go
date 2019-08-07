@@ -3,7 +3,7 @@ package transform
 import (
 	"github.com/smartystreets/clock"
 	"github.com/smartystreets/listeners"
-	"github.com/smartystreets/messaging"
+	"github.com/smartystreets/messaging/v2"
 	"github.com/smartystreets/projector"
 	"github.com/smartystreets/projector/persist"
 )
