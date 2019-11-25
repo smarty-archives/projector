@@ -90,7 +90,9 @@ func (this *ReadWriter) deserialize(document projector.Document, reader io.Reade
 	return nil
 }
 
-func (this *ReadWriter) execute(resource string, document projector.Document, client persist.HTTPClient, method string, options ...gcs.Option) error {
+func (this *ReadWriter) execute(
+	resource string, document projector.Document, client persist.HTTPClient, method string, options ...gcs.Option,
+) error {
 	request, err := gcs.NewRequest(method, options...)
 	if err != nil {
 		return fmt.Errorf("could not create signed request: %s\n", err)
@@ -109,8 +111,13 @@ func (this *ReadWriter) execute(resource string, document projector.Document, cl
 	document.SetVersion(generation)
 	return nil
 }
-func (this *ReadWriter) handleResponse(method, resource string, document projector.Document, response *http.Response) (string, error) {
-	log.Printf("[INFO] HTTP %s Status [%d], Content-Length: [%d], Resource: [%s]", method, response.StatusCode, response.ContentLength, resource)
+func (this *ReadWriter) handleResponse(
+	method string, resource string, document projector.Document, response *http.Response,
+) (string, error) {
+	log.Printf(
+		"[INFO] HTTP %s Status [%d], Content-Length: [%d], Resource: [%s]",
+		method, response.StatusCode, response.ContentLength, resource,
+	)
 
 	switch response.StatusCode {
 	case http.StatusOK:
