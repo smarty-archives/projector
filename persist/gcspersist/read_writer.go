@@ -110,7 +110,7 @@ func (this *ReadWriter) execute(resource string, document projector.Document, cl
 	return nil
 }
 func (this *ReadWriter) handleResponse(method, resource string, document projector.Document, response *http.Response) (string, error) {
-	// log.Printf("[INFO] HTTP %s Status [%d], Content-Length: [%d], Resource: [%s]", method, response.StatusCode, response.ContentLength, resource)
+	log.Printf("[INFO] HTTP %s Status [%d], Content-Length: [%d], Resource: [%s]", method, response.StatusCode, response.ContentLength, resource)
 
 	switch response.StatusCode {
 	case http.StatusOK:
