@@ -3,6 +3,7 @@ package anypersist
 import (
 	"context"
 	"errors"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -76,6 +77,7 @@ func (this *Wireup) buildGCS() (persist.ReadWriter, error) {
 		return nil, err
 	}
 
+	log.Printf("[INFO] Building gcs storage for bucket [%s] and path prefix [%s].", this.bucketName, this.pathPrefix)
 	return gcspersist.NewReadWriter(func() gcspersist.StorageSettings {
 		return gcspersist.StorageSettings{
 			HTTPClient:  this.appendRetryClient(this.buildHTTPClient()),
