@@ -28,7 +28,7 @@ func (this *HandlerFixture) Setup() {
 	this.input = make(chan messaging.Delivery, 16)
 	this.output = make(chan interface{}, 16)
 	this.transformer = &FakeTransformer{}
-	this.handler = newHandler(this.input, this.output, this.transformer)
+	this.handler = newHandler(this.input, this.output, this.transformer).WithSleep(0)
 	this.now = clock.UTCNow()
 	this.handler.clock = clock.Freeze(this.now)
 }
