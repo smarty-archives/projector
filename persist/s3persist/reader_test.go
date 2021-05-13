@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -14,7 +15,6 @@ import (
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
 	"github.com/smartystreets/logging"
-	"github.com/smartystreets/nu"
 	"github.com/smartystreets/projector"
 )
 
@@ -32,7 +32,7 @@ type ReaderFixture struct {
 
 func (this *ReaderFixture) Setup() {
 	this.client = &FakeHTTPGetClient{}
-	address := nu.URLParsed("https://bucket.s3-us-west-1.amazonaws.com/")
+	address := urlParsed("https://bucket.s3-us-west-1.amazonaws.com/")
 	this.reader = NewReader(address, "access", "secret", this.client)
 	this.reader.logger = logging.Capture()
 	this.document = &Document{}
@@ -149,4 +149,11 @@ func (this *FakeHTTPResponseBody) Read(p []byte) (int, error) {
 func (this *FakeHTTPResponseBody) Close() error {
 	this.closed = true
 	return nil
+}
+func urlParsed(value string) *url.URL {
+	parsed, err := url.Parse(value)
+	if err != nil {
+		panic(err)
+	}
+	return parsed
 }

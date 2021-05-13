@@ -12,7 +12,5 @@ github.com/smartystreets/logging v1.1.1 h1:4UlnyYWB7LDd216NTuP3zTVvMQZREtPrDnJbs
 github.com/smartystreets/logging v1.1.1/go.mod h1:NwFCEPbtiTIug+UCtTbDVjgcJNfandE3brDx0x7QEY8=
 github.com/smartystreets/messaging/v2 v2.1.1 h1:MHUEqjipTunn+WAhZNS3X2NaEa8fbmblq02Nm4axtv4=
 github.com/smartystreets/messaging/v2 v2.1.1/go.mod h1:lrkr2tLUWYxZxeaoTIIUnYP66Vr3uedhdjjH9On3toY=
-github.com/smartystreets/nu v1.0.2 h1:K3sdkNItoLgUn4glG+pbQ8oBfVrT3lLR7+g2tJY+iaA=
-github.com/smartystreets/nu v1.0.2/go.mod h1:fyTSRLw5z4+TyLYIMcDWrEJO5lkOzP6ToeZPZIxOeAg=
 github.com/smartystreets/s3 v1.1.3 h1:l24mj0VKmgq6MZQpoNrS30YGzUwFD2KMfiTffBaV83s=
 github.com/smartystreets/s3 v1.1.3/go.mod h1:EX/fukIfgxSh0Ae//gzhkSm+lMrHvlI/ExG1xgEptqE=
