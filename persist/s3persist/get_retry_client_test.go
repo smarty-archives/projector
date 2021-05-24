@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/smartystreets/assertions/should"
-	"github.com/smartystreets/clock"
 	"github.com/smartystreets/gunit"
 	"github.com/smartystreets/logging"
 )
@@ -22,13 +22,16 @@ type GetRetryClientFixture struct {
 	retryClient *GetRetryClient
 	response    *http.Response
 	err         error
+	naps        []time.Duration
 }
 
 func (this *GetRetryClientFixture) Setup() {
 	this.fakeClient = &FakeHTTPClientForGetRetry{}
-	this.retryClient = NewGetRetryClient(this.fakeClient, retries)
-	this.retryClient.sleeper = clock.StayAwake()
+	this.retryClient = NewGetRetryClient(this.fakeClient, retries, this.sleep)
 	this.retryClient.logger = logging.Capture()
+}
+func (this *GetRetryClientFixture) sleep(duration time.Duration) {
+	this.naps = append(this.naps, duration)
 }
 
 // ///////////////////////////////////////////////////////
@@ -87,7 +90,7 @@ func (this *GetRetryClientFixture) TestClientNeverSucceeds() {
 	this.So(this.response, should.BeNil)
 	this.So(this.err, should.NotBeNil)
 	this.So(this.fakeClient.calls, should.Equal, maxAttempts)
-	this.So(len(this.retryClient.sleeper.Naps), should.Equal, maxAttempts)
+	this.So(len(this.naps), should.Equal, maxAttempts)
 }
 
 // ///////////////////////////////////////////////////////

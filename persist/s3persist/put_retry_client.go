@@ -9,7 +9,6 @@ import (
 	"net/http/httputil"
 	"time"
 
-	"github.com/smartystreets/clock"
 	"github.com/smartystreets/logging"
 	"github.com/smartystreets/projector/persist"
 )
@@ -17,12 +16,12 @@ import (
 type PutRetryClient struct {
 	inner   persist.HTTPClient
 	retries int
-	sleeper *clock.Sleeper
+	sleeper func(time.Duration)
 	logger  *logging.Logger
 }
 
-func NewPutRetryClient(inner persist.HTTPClient, retries int) *PutRetryClient {
-	return &PutRetryClient{inner: inner, retries: retries}
+func NewPutRetryClient(inner persist.HTTPClient, retries int, sleeper func(time.Duration)) *PutRetryClient {
+	return &PutRetryClient{inner: inner, retries: retries, sleeper: sleeper}
 }
 
 // TODO: provide a way to exit gracefully?
@@ -48,7 +47,7 @@ func (this *PutRetryClient) Do(request *http.Request) (*http.Response, error) {
 			this.logger.Printf("[WARN] Target host rejected request ('%s'):\n%s\n", request.URL.Path, readResponse(response))
 		}
 
-		this.sleeper.Sleep(sleepTime)
+		this.sleeper(sleepTime)
 	}
 
 	return nil, errors.New("Max retries exceeded. Unable to connect.")

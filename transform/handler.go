@@ -3,7 +3,6 @@ package transform
 import (
 	"time"
 
-	"github.com/smartystreets/clock"
 	"github.com/smartystreets/listeners"
 	"github.com/smartystreets/messaging/v2"
 	"github.com/smartystreets/projector"
@@ -15,16 +14,16 @@ type Handler struct {
 	output      chan<- interface{}
 	transformer Transformer
 	messages    []interface{}
-	clock       *clock.Clock
+	now         func() time.Time
 	sleep       time.Duration
 }
 
-func NewHandler(i <-chan messaging.Delivery, o chan<- interface{}, rw persist.ReadWriter, d ...projector.Document) listeners.Listener {
-	return newHandler(i, o, newTransformer(rw, d...))
+func NewHandler(now func() time.Time, i <-chan messaging.Delivery, o chan<- interface{}, rw persist.ReadWriter, d ...projector.Document) listeners.Listener {
+	return newHandler(i, o, newTransformer(rw, d...), now)
 }
 
-func newHandler(input <-chan messaging.Delivery, output chan<- interface{}, transformer Transformer) *Handler {
-	return &Handler{input: input, output: output, transformer: transformer}
+func newHandler(input <-chan messaging.Delivery, output chan<- interface{}, transformer Transformer, now func() time.Time) *Handler {
+	return &Handler{input: input, output: output, transformer: transformer, now: now}
 }
 
 func (this *Handler) WithSleep(duration time.Duration) *Handler {
@@ -39,7 +38,7 @@ func (this *Handler) Listen() {
 			continue
 		}
 
-		this.transformer.Transform(this.clock.UTCNow(), this.messages)
+		this.transformer.Transform(this.now(), this.messages)
 		this.output <- delivery.Receipt
 		this.messages = this.messages[0:0]
 		time.Sleep(this.sleep)

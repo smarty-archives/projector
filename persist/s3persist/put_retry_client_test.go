@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/smartystreets/assertions/should"
-	"github.com/smartystreets/clock"
 	"github.com/smartystreets/gunit"
 	"github.com/smartystreets/logging"
 )
@@ -31,13 +31,16 @@ type PutRetryClientFixture struct {
 	retryClient *PutRetryClient
 	response    *http.Response
 	err         error
+	naps        []time.Duration
 }
 
 func (this *PutRetryClientFixture) Setup() {
 	this.fakeClient = newFakeHTTPClientForPutRetry()
-	this.retryClient = NewPutRetryClient(this.fakeClient, retries)
-	this.retryClient.sleeper = clock.StayAwake()
+	this.retryClient = NewPutRetryClient(this.fakeClient, retries, this.sleep)
 	this.retryClient.logger = logging.Capture()
+}
+func (this *PutRetryClientFixture) sleep(duration time.Duration) {
+	this.naps = append(this.naps, duration)
 }
 
 // //////////////////////////////////////////////////////////////////
@@ -104,7 +107,7 @@ func (this *PutRetryClientFixture) assertAllAttemptsUsed() {
 	this.So(this.fakeClient.calls, should.Equal, maxAttempts)
 }
 func (this *PutRetryClientFixture) assertWaitingPeriodBetweenAttempts() {
-	this.So(len(this.retryClient.sleeper.Naps), should.Equal, maxAttempts)
+	this.So(len(this.naps), should.Equal, maxAttempts)
 }
 func (this *PutRetryClientFixture) assertPayloadIsIdenticalOnEveryRequest() {
 	if len(this.fakeClient.bodies) == 0 {

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/smartystreets/assertions/should"
-	"github.com/smartystreets/clock"
 	"github.com/smartystreets/gunit"
 	"github.com/smartystreets/messaging/v2"
 )
@@ -28,9 +27,8 @@ func (this *HandlerFixture) Setup() {
 	this.input = make(chan messaging.Delivery, 16)
 	this.output = make(chan interface{}, 16)
 	this.transformer = &FakeTransformer{}
-	this.handler = newHandler(this.input, this.output, this.transformer).WithSleep(0)
-	this.now = clock.UTCNow()
-	this.handler.clock = clock.Freeze(this.now)
+	this.now = time.Now().UTC()
+	this.handler = newHandler(this.input, this.output, this.transformer, func() time.Time { return this.now }).WithSleep(0)
 }
 
 func (this *HandlerFixture) TestMessagesHandled() {

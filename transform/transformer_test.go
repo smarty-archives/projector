@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/smartystreets/assertions/should"
-	"github.com/smartystreets/clock"
 	"github.com/smartystreets/gunit"
 	"github.com/smartystreets/projector"
 	"github.com/smartystreets/projector/persist"
@@ -29,7 +28,7 @@ type TransformerFixture struct {
 
 func (this *TransformerFixture) Setup() {
 	this.messages = []interface{}{"1", 2, 3.0}
-	this.now = clock.UTCNow()
+	this.now = utcNow()
 	this.store = NewFakeStorage()
 
 	var docs []projector.Document
@@ -119,7 +118,7 @@ type FakeDocument struct {
 
 func (this *FakeDocument) Apply(message interface{}) bool {
 	this.apply++
-	this.applyTime = clock.UTCNow()
+	this.applyTime = utcNow()
 	this.messages = append(this.messages, message)
 	return true
 }
@@ -128,3 +127,4 @@ func (this *FakeDocument) Path() string                                  { retur
 func (this *FakeDocument) Reset()                                        { this.reset++ }
 func (this *FakeDocument) SetVersion(value interface{})                  { this.version = value }
 func (this *FakeDocument) Version() interface{}                          { panic("nop") }
+func utcNow() time.Time                                                  { return time.Now().UTC() }

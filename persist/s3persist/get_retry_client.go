@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/smartystreets/clock"
 	"github.com/smartystreets/logging"
 	"github.com/smartystreets/projector/persist"
 )
@@ -13,7 +12,7 @@ import (
 type GetRetryClient struct {
 	inner   persist.HTTPClient
 	retries int
-	sleeper *clock.Sleeper
+	sleeper func(time.Duration)
 	logger  *logging.Logger
 }
 
@@ -22,8 +21,8 @@ type GetRetryClient struct {
 // a retry loop because the Shutdown client would retry success (HTTP 200)
 // or perhaps HTTP 404?
 
-func NewGetRetryClient(inner persist.HTTPClient, retries int) *GetRetryClient {
-	return &GetRetryClient{inner: inner, retries: retries}
+func NewGetRetryClient(inner persist.HTTPClient, retries int, sleeper func(time.Duration)) *GetRetryClient {
+	return &GetRetryClient{inner: inner, retries: retries, sleeper: sleeper}
 }
 
 func (this *GetRetryClient) Do(request *http.Request) (*http.Response, error) {
@@ -42,7 +41,7 @@ func (this *GetRetryClient) Do(request *http.Request) (*http.Response, error) {
 		} else if response.Body != nil {
 			this.logger.Printf("[WARN] Target host rejected request ('%s'):\n%s\n", request.URL.Path, readResponse(response))
 		}
-		this.sleeper.Sleep(time.Second * 5)
+		this.sleeper(time.Second * 5)
 	}
 	return nil, errors.New("Max retries exceeded. Unable to connect.")
 }

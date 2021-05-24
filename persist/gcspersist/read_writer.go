@@ -13,7 +13,6 @@ import (
 	"path"
 	"time"
 
-	"github.com/smartystreets/clock"
 	"github.com/smartystreets/gcs"
 	"github.com/smartystreets/logging"
 	"github.com/smartystreets/projector"
@@ -22,12 +21,12 @@ import (
 
 type ReadWriter struct {
 	settings func() StorageSettings
-	clock    *clock.Clock
+	now      func() time.Time
 	logger   *logging.Logger
 }
 
-func NewReadWriter(settings func() StorageSettings) *ReadWriter {
-	return &ReadWriter{settings: settings}
+func NewReadWriter(settings func() StorageSettings, now func() time.Time) *ReadWriter {
+	return &ReadWriter{settings: settings, now: now}
 }
 
 func (this *ReadWriter) Name() string { return "Google Cloud Storage" }
@@ -40,7 +39,7 @@ func (this *ReadWriter) ReadPanic(document projector.Document) {
 func (this *ReadWriter) Read(document projector.Document) error {
 	settings := this.settings()
 	resource := path.Join("/", settings.PathPrefix, document.Path())
-	expiration := this.clock.UTCNow().Add(time.Hour * 24)
+	expiration := this.now().Add(time.Hour * 24)
 
 	return this.execute(resource, document, settings.HTTPClient, gcs.GET,
 		gcs.WithCredentials(settings.Credentials),
@@ -51,7 +50,7 @@ func (this *ReadWriter) Read(document projector.Document) error {
 func (this *ReadWriter) Write(document projector.Document) error {
 	settings := this.settings()
 	resource := path.Join("/", settings.PathPrefix, document.Path())
-	expiration := this.clock.UTCNow().Add(time.Hour * 24)
+	expiration := this.now().Add(time.Hour * 24)
 	generation, _ := document.Version().(string)
 	body := this.serialize(document)
 	checksum := md5.Sum(body)

@@ -84,7 +84,7 @@ func (this *Wireup) buildGCS() (persist.ReadWriter, error) {
 			Context:     this.context,
 			Credentials: credentials,
 		}
-	}), nil
+	}, utcNow), nil
 }
 
 func (this *Wireup) buildHTTPClient() persist.HTTPClient {
@@ -95,8 +95,8 @@ func (this *Wireup) appendRetryClient(client persist.HTTPClient) persist.HTTPCli
 		return client
 	}
 
-	client = s3persist.NewGetRetryClient(client, int(this.maxRetries))
-	client = s3persist.NewPutRetryClient(client, int(this.maxRetries))
+	client = s3persist.NewGetRetryClient(client, int(this.maxRetries), time.Sleep)
+	client = s3persist.NewPutRetryClient(client, int(this.maxRetries), time.Sleep)
 	return client
 }
 
@@ -105,3 +105,7 @@ const (
 	engineS3
 	engineGCS
 )
+
+func utcNow() time.Time {
+	return time.Now().UTC()
+}
