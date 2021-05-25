@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/smartystreets/gcs"
-	"github.com/smartystreets/logging"
 	"github.com/smartystreets/projector"
 	"github.com/smartystreets/projector/persist"
 )
@@ -22,7 +21,6 @@ import (
 type ReadWriter struct {
 	settings func() StorageSettings
 	now      func() time.Time
-	logger   *logging.Logger
 }
 
 func NewReadWriter(settings func() StorageSettings, now func() time.Time) *ReadWriter {
@@ -33,7 +31,7 @@ func (this *ReadWriter) Name() string { return "Google Cloud Storage" }
 
 func (this *ReadWriter) ReadPanic(document projector.Document) {
 	if err := this.Read(document); err != nil {
-		this.logger.Panic(err)
+		log.Panic(err)
 	}
 }
 func (this *ReadWriter) Read(document projector.Document) error {
@@ -72,7 +70,7 @@ func (this *ReadWriter) serialize(document projector.Document) []byte {
 	writer, _ := gzip.NewWriterLevel(buffer, gzip.BestCompression)
 
 	if err := json.NewEncoder(writer).Encode(document); err != nil {
-		this.logger.Panic(err)
+		log.Panic(err)
 		return nil
 	}
 
@@ -122,10 +120,10 @@ func (this *ReadWriter) handleResponse(
 	case http.StatusOK:
 		return response.Header.Get("x-goog-generation"), this.handleResponseBody(document, response)
 	case http.StatusNotFound:
-		this.logger.Printf("[INFO] Document not found at '%s'\n", document.Path())
+		log.Printf("[INFO] Document not found at '%s'\n", document.Path())
 		return "", nil
 	case http.StatusPreconditionFailed:
-		this.logger.Printf("[INFO] Document on remote storage has changed '%s'\n", document.Path())
+		log.Printf("[INFO] Document on remote storage has changed '%s'\n", document.Path())
 		return "", persist.ErrConcurrentWrite
 	default:
 		return "", fmt.Errorf("non-200 http status code: %s", response.Status)

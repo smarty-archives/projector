@@ -12,7 +12,6 @@ import (
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
-	"github.com/smartystreets/logging"
 	"github.com/smartystreets/projector"
 )
 
@@ -30,7 +29,6 @@ func (this *WriterFixture) Setup() {
 	this.client = NewFakeHTTPClientForWriting()
 	address := urlParsed("https://bucket.s3-us-west-1.amazonaws.com/")
 	this.writer = NewWriter(address, "access", "secret", this.client)
-	this.writer.logger = logging.Capture()
 }
 
 // /////////////////////////////////////////////////////////////////

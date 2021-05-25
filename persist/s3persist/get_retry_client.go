@@ -2,10 +2,10 @@ package s3persist
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"time"
 
-	"github.com/smartystreets/logging"
 	"github.com/smartystreets/projector/persist"
 )
 
@@ -13,7 +13,6 @@ type GetRetryClient struct {
 	inner   persist.HTTPClient
 	retries int
 	sleeper func(time.Duration)
-	logger  *logging.Logger
 }
 
 // FUTURE: We may want to consider a ShutdownClient that sits just under
@@ -37,9 +36,9 @@ func (this *GetRetryClient) Do(request *http.Request) (*http.Response, error) {
 		} else if err == nil && response.StatusCode == http.StatusNotFound {
 			return response, nil
 		} else if err != nil {
-			this.logger.Println("[WARN] Unexpected response from target storage:", err)
+			log.Println("[WARN] Unexpected response from target storage:", err)
 		} else if response.Body != nil {
-			this.logger.Printf("[WARN] Target host rejected request ('%s'):\n%s\n", request.URL.Path, readResponse(response))
+			log.Printf("[WARN] Target host rejected request ('%s'):\n%s\n", request.URL.Path, readResponse(response))
 		}
 		this.sleeper(time.Second * 5)
 	}

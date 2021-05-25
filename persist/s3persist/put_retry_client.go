@@ -5,11 +5,11 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"time"
 
-	"github.com/smartystreets/logging"
 	"github.com/smartystreets/projector/persist"
 )
 
@@ -17,7 +17,6 @@ type PutRetryClient struct {
 	inner   persist.HTTPClient
 	retries int
 	sleeper func(time.Duration)
-	logger  *logging.Logger
 }
 
 func NewPutRetryClient(inner persist.HTTPClient, retries int, sleeper func(time.Duration)) *PutRetryClient {
@@ -38,13 +37,13 @@ func (this *PutRetryClient) Do(request *http.Request) (*http.Response, error) {
 		if err == nil && response.StatusCode == http.StatusOK {
 			return response, nil
 		} else if err != nil && response == nil && current > logAfterAttempts {
-			this.logger.Println("[WARN] Unexpected response from target storage:", err)
+			log.Println("[WARN] Unexpected response from target storage:", err)
 		} else if response != nil && response.StatusCode == http.StatusPreconditionFailed {
 			return response, nil // this isn't an error
 		} else if err != nil && response != nil && current > logAfterAttempts {
-			this.logger.Println("[WARN] Unexpected response from target storage:", err, response.StatusCode, response.Status)
+			log.Println("[WARN] Unexpected response from target storage:", err, response.StatusCode, response.Status)
 		} else if err == nil && response.Body != nil && current > logAfterAttempts {
-			this.logger.Printf("[WARN] Target host rejected request ('%s'):\n%s\n", request.URL.Path, readResponse(response))
+			log.Printf("[WARN] Target host rejected request ('%s'):\n%s\n", request.URL.Path, readResponse(response))
 		}
 
 		this.sleeper(sleepTime)

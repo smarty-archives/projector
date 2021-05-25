@@ -7,18 +7,16 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 
-	"github.com/smartystreets/logging"
 	"github.com/smartystreets/projector"
 	"github.com/smartystreets/projector/persist"
 	"github.com/smartystreets/s3"
 )
 
 type Writer struct {
-	logger *logging.Logger
-
 	credentials s3.Option
 	storage     s3.Option
 	client      persist.HTTPClient
@@ -53,7 +51,7 @@ func (this *Writer) serialize(document projector.Document) []byte {
 	encoder := json.NewEncoder(gzipWriter)
 
 	if err := encoder.Encode(document); err != nil {
-		this.logger.Panic(err)
+		log.Panic(err)
 	}
 
 	_ = gzipWriter.Close()
@@ -78,7 +76,7 @@ func (this *Writer) buildRequest(path string, body []byte, checksum string) *htt
 		s3.ServerSideEncryption(s3.ServerSideEncryptionAES256),
 	)
 	if err != nil {
-		this.logger.Panic(err)
+		log.Panic(err)
 	}
 	return request
 }
@@ -89,14 +87,14 @@ func (this *Writer) buildRequest(path string, body []byte, checksum string) *htt
 // the software in case the behavior of the inner client changes in the future.
 func (this *Writer) handleResponse(response *http.Response, err error) (interface{}, error) {
 	if err != nil {
-		this.logger.Panic(err)
+		log.Panic(err)
 		return nil, err
 	}
 
 	defer func() { _ = response.Body.Close() }()
 
 	if response.StatusCode != http.StatusOK {
-		this.logger.Panic(fmt.Errorf("Non-200 HTTP Status Code: %d %s", response.StatusCode, response.Status))
+		log.Panic(fmt.Errorf("Non-200 HTTP Status Code: %d %s", response.StatusCode, response.Status))
 		return nil, err
 	}
 

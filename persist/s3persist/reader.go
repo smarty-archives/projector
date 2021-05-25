@@ -5,18 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 
-	"github.com/smartystreets/logging"
 	"github.com/smartystreets/projector"
 	"github.com/smartystreets/projector/persist"
 	"github.com/smartystreets/s3"
 )
 
 type Reader struct {
-	logger *logging.Logger
-
 	storage     s3.Option
 	credentials s3.Option
 	client      persist.HTTPClient
@@ -44,7 +42,7 @@ func (this *Reader) Read(document projector.Document) error {
 	defer func() { _ = response.Body.Close() }()
 
 	if response.StatusCode == http.StatusNotFound {
-		this.logger.Printf("[INFO] Document not found at '%s'\n", document.Path())
+		log.Printf("[INFO] Document not found at '%s'\n", document.Path())
 		return nil
 	}
 
@@ -64,6 +62,6 @@ func (this *Reader) Read(document projector.Document) error {
 
 func (this *Reader) ReadPanic(document projector.Document) {
 	if err := this.Read(document); err != nil {
-		this.logger.Panic(err)
+		log.Panic(err)
 	}
 }

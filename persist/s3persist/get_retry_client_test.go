@@ -8,7 +8,6 @@ import (
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
-	"github.com/smartystreets/logging"
 )
 
 func TestGetRetryClientFixture(t *testing.T) {
@@ -28,7 +27,6 @@ type GetRetryClientFixture struct {
 func (this *GetRetryClientFixture) Setup() {
 	this.fakeClient = &FakeHTTPClientForGetRetry{}
 	this.retryClient = NewGetRetryClient(this.fakeClient, retries, this.sleep)
-	this.retryClient.logger = logging.Capture()
 }
 func (this *GetRetryClientFixture) sleep(duration time.Duration) {
 	this.naps = append(this.naps, duration)

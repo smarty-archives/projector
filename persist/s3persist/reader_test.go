@@ -14,7 +14,6 @@ import (
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
-	"github.com/smartystreets/logging"
 	"github.com/smartystreets/projector"
 )
 
@@ -34,7 +33,6 @@ func (this *ReaderFixture) Setup() {
 	this.client = &FakeHTTPGetClient{}
 	address := urlParsed("https://bucket.s3-us-west-1.amazonaws.com/")
 	this.reader = NewReader(address, "access", "secret", this.client)
-	this.reader.logger = logging.Capture()
 	this.document = &Document{}
 }
 
