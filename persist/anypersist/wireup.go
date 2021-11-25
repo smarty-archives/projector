@@ -3,6 +3,7 @@ package anypersist
 import (
 	"context"
 	"errors"
+	"net"
 	"net/http"
 	"net/url"
 	"time"
@@ -88,7 +89,23 @@ func (this *Wireup) buildGCS() (persist.ReadWriter, error) {
 }
 
 func (this *Wireup) buildHTTPClient() persist.HTTPClient {
-	return &http.Client{Timeout: this.timeout}
+	return &http.Client{
+		Timeout: this.timeout,
+		Transport: &http.Transport{
+			DialContext: (&net.Dialer{
+				Timeout:   5 * time.Second,
+				KeepAlive: 1 * time.Second,
+			}).DialContext,
+			DisableKeepAlives:      true,
+			MaxIdleConns:           32,
+			MaxIdleConnsPerHost:    16,
+			MaxConnsPerHost:        64,
+			IdleConnTimeout:        time.Second * 120,
+			ResponseHeaderTimeout:  time.Second * 15,
+			MaxResponseHeaderBytes: 4096,
+			ForceAttemptHTTP2:      false,
+		},
+	}
 }
 func (this *Wireup) appendRetryClient(client persist.HTTPClient) persist.HTTPClient {
 	if this.maxRetries == 0 {
